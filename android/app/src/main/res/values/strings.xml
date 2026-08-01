@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">NutriSmart</string>
+    <string name="title_activity_main">NutriSmart</string>
+    <string name="package_name">com.nutrismartrecipes.com</string>
+    <string name="custom_url_scheme">com.nutrismartrecipes.com</string>
+    <string name="server_client_id">786266517047-fjn0bnf02v7li2ovkn2m5vrvn5fgsapl.apps.googleusercontent.com</string>
+</resources>

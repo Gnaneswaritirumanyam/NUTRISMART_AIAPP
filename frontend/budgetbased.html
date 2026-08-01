@@ -1,0 +1,2000 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>NutriSmart AI</title>
+
+<link rel="stylesheet" href="./style.css">
+
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+<script src="./js/api_config.js"></script>
+
+<!-- Centralized Managers -->
+<script src="./js/plan-manager.js"></script>
+<script src="./js/notification-manager.js"></script>
+<script src="./js/feedback-manager.js"></script>
+<script src="./js/analytics-manager.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+
+.analytics {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px);
+    border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(255, 90, 44, 0.12);
+    border: 1px solid rgba(255, 90, 44, 0.15);
+}
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Segoe UI", sans-serif;
+}
+
+body{
+    margin:0;
+    font-family:Arial, sans-serif;
+    background:linear-gradient(to right,#f38043,#ffffff,#f38043);
+}
+/* ================= CONTAINER ================= */
+
+.container {
+    max-width: 1300px;
+    margin: auto;
+    padding: 24px;
+}
+
+/* ================= DASHBOARD ================= */
+
+.dashboard {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 30px;
+    margin-top: 20px;
+    margin-left: 24px;
+}
+
+/* ================= PANELS ================= */
+
+.panel {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 16px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+    transition: 0.2s ease;
+    margin-right:24px;
+}
+
+.panel:hover {
+    transform: translateY(-2px);
+}
+
+/* ================= INPUTS ================= */
+
+input, select, textarea {
+    width: 100%;
+    padding: 12px;
+    margin-top: 8px;
+    margin-bottom: 12px;
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+    outline: none;
+    transition: 0.2s;
+    font-size: 14px;
+}
+
+input:focus, select:focus, textarea:focus {
+    border-color: #ff5a2c;
+    box-shadow: 0 0 0 3px rgba(255,90,44,0.15);
+}
+
+/* ================= BUTTON ================= */
+
+button {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #ff5a2c, #ff7a45);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 18px rgba(255,90,44,0.25);
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+/* ================= SUMMARY ================= */
+
+.summary {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 15px;
+}
+
+.card {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 16px;
+    text-align: center;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255,255,255,0.6);
+}
+
+.card:hover {
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 0 12px 30px rgba(255, 90, 44, 0.2);
+}
+
+.card i {
+    font-size: 22px;
+    color: #ff5a2c;
+    margin-bottom: 6px;
+    transition: 0.3s;
+}
+
+.card:hover i {
+    transform: scale(1.2);
+    text-shadow: 0 0 12px rgba(255, 90, 44, 0.5);
+}
+
+/* ================= CHARTS ================= */
+
+.charts {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    margin-top:10px ;
+   
+}
+.chart-box {
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 14px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+    border: 1px solid rgba(255, 90, 44, 0.1);
+}
+
+canvas {
+    max-height: 200px !important;
+}
+/* ================= MEALS ================= */
+
+.meal-section {
+    margin-top: 30px;
+}
+
+
+#mealContainer {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+.empty {
+    text-align: center;
+    color: #888;
+    padding: 30px;
+}
+
+.day-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 14px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+    transition: 0.2s;
+}
+
+.day-card:hover {
+    transform: translateY(-3px);
+}
+
+.day-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.cal {
+    background: #ff5a2c;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+}
+
+.meal-box {
+    background: #f8f9ff;
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: 8px;
+}
+
+.meal-box h4 {
+    margin: 0;
+    font-size: 13px;
+}
+
+.meal-box p {
+    font-size: 13px;
+    margin: 2px 0;
+}
+
+.recipe-btn {
+    margin-top: 10px;
+    background: linear-gradient(135deg, #ff5a2c, #ff7a45);
+    border: none;
+    color: white;
+    padding: 10px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+
+.day-card h3 {
+    color: #ff5a2c;
+    margin-bottom: 10px;
+}
+
+/* ================= LOADING ================= */
+
+.loading {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.6);
+    text-align: center;
+    color: white;
+    padding-top: 18%;
+    backdrop-filter: blur(4px);
+}
+
+.spinner {
+    width: 48px;
+    height: 48px;
+    border: 5px solid #fff;
+    border-top: 5px solid #ff5a2c;
+    border-radius: 50%;
+    margin: auto;
+    animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* ================= MODAL ================= */
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(10px);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    z-index: 1000;
+}
+.modal-content {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(15px);
+
+    width: 45%;
+    max-width: 600px;   /* 🔥 IMPORTANT */
+    min-width: 320px;
+
+    max-height: 85vh;
+    overflow-y: auto;
+
+    padding: 24px;
+    border-radius: 18px;
+
+    box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+
+    position: relative;
+
+    animation: popIn 0.25s ease;
+
+    margin: auto;
+
+    /* 🔥 THIS IS THE KEY FIX */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+@keyframes popIn {
+    from {
+        transform: scale(0.92);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+.close {
+    position: absolute;
+    top: 12px;
+    right: 14px;
+
+    font-size: 20px;
+    cursor: pointer;
+
+    width: 34px;
+    height: 34px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background: rgba(255, 90, 44, 0.1);
+    color: #ff5a2c;
+
+    transition: 0.2s;
+}
+
+.close:hover {
+    background: #ff5a2c;
+    color: white;
+    transform: rotate(90deg);
+}
+.modal-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+    background: #ff5a2c;
+    border-radius: 10px;
+}
+
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 900px) {
+    #mealContainer {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+.logo-section {
+    display: flex;
+    flex-direction: column;   /* 🔥 key change */
+    align-items: center;
+    justify-content: center;
+
+    text-align: center;
+    gap: 6px;
+
+    margin-bottom: 0px;
+}
+
+.logo {
+    width: 150px;
+    height: 150px;
+    object-fit: contain;
+}
+
+        /* ================= NOTIFICATION SYSTEM ================= */
+
+        .notification-card,
+        .feedback-card {
+
+            background: rgba(255, 255, 255, 0.12);
+
+            backdrop-filter: blur(15px);
+
+            -webkit-backdrop-filter: blur(15px);
+
+            border: 1px solid rgba(255, 255, 255, 0.2);
+
+            border-radius: 25px;
+
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+
+        }
+
+        .notification-card .form-control {
+
+            color: white;
+
+        }
+
+        .notification-card .form-control::-webkit-calendar-picker-indicator {
+
+            filter: invert(1);
+
+        }
+
+@media (max-width: 768px) {
+    .dashboard {
+        grid-template-columns: 1fr !important;
+        margin-left: 0 !important;
+    }
+    .panel {
+        margin-right: 0 !important;
+        margin-bottom: 20px !important;
+    }
+    .modal-content {
+        width: 95% !important;
+        padding: 15px !important;
+    }
+    .container {
+        padding: 10px !important;
+    }
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- ================= HEADER ================= -->
+    <header class="logo-section">
+
+        <img src="./images/logo.png" alt="NutriSmart AI Logo" class="logo">
+
+            <h1>Budget Food Recommendation</h1>
+
+    </header>
+
+</div>
+
+<!-- ================= USER FORM ================= -->
+
+<div class="dashboard">
+
+<div class="panel form-panel">
+
+<h2>
+
+<i class="fa-solid fa-user"></i>
+
+User Information
+
+</h2>
+
+<input
+type="text"
+id="name"
+placeholder="Enter Name">
+
+<input
+type="number"
+id="age"
+placeholder="Age">
+
+<select id="gender">
+
+<option value="">Select Gender</option>
+
+<option>Male</option>
+
+<option>Female</option>
+
+<option>Other</option>
+
+</select>
+
+<input
+type="number"
+id="height"
+placeholder="Height (cm)">
+
+<input
+type="number"
+id="weight"
+placeholder="Weight (kg)">
+
+<input
+type="number"
+id="budget"
+placeholder="Daily Budget ₹">
+
+<input
+type="number"
+id="days"
+placeholder="Number of Days">
+
+<select id="foodType">
+
+<option value="">Food Type</option>
+
+<option>Vegetarian</option>
+
+<option>Non-Vegetarian</option>
+
+<option>Vegan</option>
+
+<option>Eggetarian</option>
+
+</select>
+
+<select id="goal">
+
+<option>Weight Loss</option>
+
+<option>Weight Gain</option>
+
+<option>Maintain Weight</option>
+
+<option>Muscle Gain</option>
+
+</select>
+
+<select id="activity">
+
+<option>Low</option>
+
+<option>Moderate</option>
+
+<option>High</option>
+
+</select>
+
+<textarea
+id="condition"
+placeholder="Health Condition (Diabetes, Thyroid, High BP etc.)">
+</textarea>
+
+<textarea
+id="allergy"
+placeholder="Food Allergies (Optional)">
+</textarea>
+
+<button id="generateBtn">
+
+<i class="fa-solid fa-wand-magic-sparkles"></i>
+
+Generate AI Plan
+
+</button>
+
+</div>
+
+<!-- ================= ANALYTICS ================= -->
+
+<div class="panel analytics">
+
+<h2>
+
+<i class="fa-solid fa-chart-pie"></i>
+
+Budget Analytics
+
+</h2>
+
+<div class="summary">
+
+<div class="card">
+
+<i class="fa-solid fa-wallet"></i>
+
+<h3 id="budgetValue">₹0</h3>
+
+<p>Total Budget</p>
+
+</div>
+
+<div class="card">
+
+<i class="fa-solid fa-bowl-food"></i>
+
+<h3 id="mealCost">₹0</h3>
+
+<p>Meal Cost</p>
+
+</div>
+
+<div class="card">
+
+<i class="fa-solid fa-piggy-bank"></i>
+
+<h3 id="savedMoney">₹0</h3>
+
+<p>Money Saved</p>
+
+</div>
+
+<div class="card">
+
+<i class="fa-solid fa-fire"></i>
+
+<h3 id="totalCalories">0</h3>
+
+<p>Calories</p>
+
+</div>
+</div>
+<div class="charts">
+<div class="chart-box">
+<h3>Budget Distribution</h3>
+<canvas id="budgetChart"></canvas>
+</div>
+</div>
+</div>
+<!-- ================= NOTIFICATION SYSTEM ================= -->
+
+<div id="notificationSection"
+     class="notification-card"
+     style="display:none; margin:24px; padding:25px;">
+
+    <h2>🔔 NutriSmart Notifications</h2>
+
+    <p>
+        Your meal plan is ready. Allow notifications only if you want meal reminders.
+    </p>
+
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+
+        <button
+            id="allowNotificationBtn"
+            style="background:#f5a623;">
+
+            🔔 Allow Notifications
+
+        </button>
+
+        <button
+            id="disableNotificationBtn"
+            style="background:#dc3545;">
+
+            ❌ Disable Notifications
+
+        </button>
+
+    </div>
+
+    <p id="notificationStatus">
+        Notifications are not enabled
+    </p>
+
+    <div id="notificationSettings"
+         style="display:none;">
+
+        <h3>⏰ Set Meal Reminder Times</h3>
+
+        <div class="row">
+
+            <div>
+                <label>Breakfast</label>
+                <input type="time" id="breakfastTime" value="08:00">
+            </div>
+
+            <div>
+                <label>Lunch</label>
+                <input type="time" id="lunchTime" value="13:00">
+            </div>
+
+            <div>
+                <label>Evening Snack</label>
+                <input type="time" id="snackTime" value="17:00">
+            </div>
+
+            <div>
+                <label>Dinner</label>
+                <input type="time" id="dinnerTime" value="20:00">
+            </div>
+
+        </div>
+
+        <button id="saveNotificationBtn"
+                style="background:#28a745; margin-top:15px;">
+
+            💾 Save Notification Times
+
+        </button>
+
+    </div>
+
+</div>
+<!-- ================= MEAL PLAN ================= -->
+
+<div class="meal-section">
+
+<h2>
+
+<i class="fa-solid fa-utensils"></i>
+
+AI Meal Recommendation
+
+</h2>
+
+<div id="mealContainer">
+
+<div class="empty">
+
+No meal plan generated.
+
+</div>
+
+</div>
+
+</div>
+
+<!-- ================= LOADING ================= -->
+
+<div id="loading" class="loading">
+
+<div class="spinner"></div>
+
+<p>Generating AI Meal Plan...</p>
+
+</div>
+
+<!-- ================= RECIPE MODAL ================= -->
+
+<div class="modal" id="recipeModal">
+
+<div class="modal-content">
+
+<span class="close">&times;</span>
+
+<h2 id="recipeTitle"></h2>
+
+<h3>Ingredients</h3>
+
+<ul id="ingredientList"></ul>
+
+<h3>Steps</h3>
+
+<ol id="stepList"></ol>
+
+<p>
+
+<strong>Cooking Time :</strong>
+
+<span id="cookTime"></span>
+
+</p>
+
+<p>
+
+<strong>Estimated Cost :</strong>
+
+₹<span id="recipeCost"></span>
+
+</p>
+
+</div>
+
+</div>
+
+</div>
+<script>
+const API_URL = "/generate-budget-plan";
+/* ================= NOTIFICATION STORAGE ================= */
+
+const PLAN_KEY = "nutriSmartBudgetCurrentPlan";
+const PLAN_INPUTS_KEY = "nutriSmartBudgetPlanInputs";
+const NOTIFICATION_ENABLED_KEY = "nutriSmartBudgetNotificationsEnabled";
+const NOTIFICATION_SETTINGS_KEY = "nutriSmartBudgetNotificationSettings";
+
+let notificationTimers = [];
+const notificationSection =
+    document.getElementById("notificationSection");
+
+const allowNotificationBtn =
+    document.getElementById("allowNotificationBtn");
+
+const disableNotificationBtn =
+    document.getElementById("disableNotificationBtn");
+
+const saveNotificationBtn =
+    document.getElementById("saveNotificationBtn");
+
+const notificationSettings =
+    document.getElementById("notificationSettings");
+
+const notificationStatus =
+    document.getElementById("notificationStatus");
+
+const generateBtn = document.getElementById("generateBtn");
+const loading = document.getElementById("loading");
+const mealContainer = document.getElementById("mealContainer");
+
+const budgetValue = document.getElementById("budgetValue");
+const mealCost = document.getElementById("mealCost");
+const savedMoney = document.getElementById("savedMoney");
+const totalCaloriesEl = document.getElementById("totalCalories");
+
+const inputs = {
+    name: document.getElementById("name"),
+    age: document.getElementById("age"),
+    gender: document.getElementById("gender"),
+    height: document.getElementById("height"),
+    weight: document.getElementById("weight"),
+    budget: document.getElementById("budget"),
+    days: document.getElementById("days"),
+    foodType: document.getElementById("foodType"),
+    goal: document.getElementById("goal"),
+    activity: document.getElementById("activity"),
+    condition: document.getElementById("condition"),
+    allergy: document.getElementById("allergy")
+};
+
+let budgetChart = null;
+
+generateBtn.addEventListener("click", generatePlan);
+
+async function generatePlan() {
+
+    /* =========================================
+       IF ACTIVE PLAN EXISTS
+       DO NOT GENERATE AGAIN
+    ========================================= */
+
+    const savedPlan =
+        localStorage.getItem(PLAN_KEY);
+
+    if (savedPlan) {
+
+        const planData =
+            JSON.parse(savedPlan);
+
+        renderMeals(planData.plan);
+
+        calculateTotals(
+            planData.plan,
+            planData.budget
+        );
+
+        showNotificationSection();
+
+        alert(
+            "✅ Your existing active meal plan is already available."
+        );
+
+        return;
+    }
+
+
+    /* =========================================
+       VALIDATION
+    ========================================= */
+
+    if (
+        !inputs.name.value ||
+        !inputs.budget.value ||
+        !inputs.days.value
+    ) {
+
+        alert(
+            "Please fill required fields"
+        );
+
+        return;
+    }
+
+
+    loading.style.display =
+        "block";
+
+
+    const payload = {
+
+        name: inputs.name.value,
+
+        age: Number(
+            inputs.age.value
+        ),
+
+        gender:
+            inputs.gender.value,
+
+        height: Number(
+            inputs.height.value
+        ),
+
+        weight: Number(
+            inputs.weight.value
+        ),
+
+        budget: Number(
+            inputs.budget.value
+        ),
+
+        days: Number(
+            inputs.days.value
+        ),
+
+        foodType:
+            inputs.foodType.value,
+
+        goal:
+            inputs.goal.value,
+
+        activity:
+            inputs.activity.value,
+
+        condition:
+            inputs.condition.value,
+
+        allergy:
+            inputs.allergy.value
+
+    };
+
+
+    try {
+
+        const res =
+            await apiFetch(
+
+                API_URL,
+
+                {
+
+                    method:
+                        "POST",
+
+                    headers: {
+
+                        "Content-Type":
+                            "application/json"
+
+                    },
+
+                    body:
+                        JSON.stringify(
+                            payload
+                        )
+
+                }
+
+            );
+
+
+       const responseText = await res.text();
+
+console.log("Backend Status:", res.status);
+console.log("Backend Response:", responseText);
+
+let data;
+
+try {
+    data = JSON.parse(responseText);
+} catch (error) {
+
+    alert(
+        "Backend Error:\n\n" +
+        responseText
+    );
+
+    loading.style.display = "none";
+
+    return;
+}
+
+        loading.style.display =
+            "none";
+
+
+        if (!data.success) {
+
+            alert(
+                data.error ||
+                "Failed"
+            );
+
+            return;
+
+        }
+
+
+        /* =========================================
+           SAVE ACTIVE PLAN
+        ========================================= */
+
+        localStorage.setItem(
+
+            PLAN_KEY,
+
+            JSON.stringify({
+
+                plan:
+                    data.plan,
+
+                budget:
+                    payload.budget
+
+            })
+
+        );
+
+
+        /* =========================================
+           DISPLAY PLAN
+        ========================================= */
+
+        renderMeals(
+            data.plan
+        );
+
+
+        calculateTotals(
+
+            data.plan,
+
+            payload.budget
+
+        );
+
+
+        /* =========================================
+           SHOW NOTIFICATION SYSTEM
+        ========================================= */
+
+        showNotificationSection();
+
+
+        alert(
+
+            "✅ AI Meal Plan Generated Successfully!"
+
+        );
+
+
+    }
+
+    catch (err) {
+
+        loading.style.display =
+            "none";
+
+        console.error(
+            err
+        );
+
+        alert(
+            "Backend not connected"
+        );
+
+    }
+
+}
+function renderMeals(plan) {
+
+    mealContainer.innerHTML = "";
+
+    plan.days.forEach(day => {
+
+        const div = document.createElement("div");
+        div.className = "day-card";
+
+        div.innerHTML = `
+            <div class="day-header">
+                <h3>Day ${day.day}</h3>
+                <span class="cal">${day.breakfast.calories + day.lunch.calories + day.dinner.calories} kcal</span>
+            </div>
+
+            <div class="meal-box">
+                <h4>🌅 Breakfast</h4>
+                <p>${day.breakfast.meal}</p>
+                <small>₹${day.breakfast.cost}</small>
+            </div>
+
+            <div class="meal-box">
+                <h4>🍛 Lunch</h4>
+                <p>${day.lunch.meal}</p>
+                <small>₹${day.lunch.cost}</small>
+            </div>
+
+            <div class="meal-box">
+                <h4>🌙 Dinner</h4>
+                <p>${day.dinner.meal}</p>
+                <small>₹${day.dinner.cost}</small>
+            </div>
+
+            <button class="recipe-btn" onclick='openRecipe(${JSON.stringify(day)})'>
+                View Recipe
+            </button>
+        `;
+
+        mealContainer.appendChild(div);
+    });
+}
+
+
+function openRecipe(dayObj) {
+
+    const modal = document.getElementById("recipeModal");
+
+    document.getElementById("recipeTitle").innerText =
+        "Day " + dayObj.day + " Recipes";
+
+         modal.style.display = "block";
+    document.body.style.overflow = "hidden"; // ✅ ADD THIS
+
+    const ingredientList = document.getElementById("ingredientList");
+    const stepList = document.getElementById("stepList");
+
+    ingredientList.innerHTML = "";
+    stepList.innerHTML = "";
+
+    const meals = [
+        { name: "Breakfast", data: dayObj.breakfast },
+        { name: "Lunch", data: dayObj.lunch },
+        { name: "Dinner", data: dayObj.dinner }
+    ];
+
+    meals.forEach(m => {
+
+        if (!m.data.recipe) return;
+
+        const title1 = document.createElement("h4");
+        title1.innerText = m.name + " - Ingredients";
+        ingredientList.appendChild(title1);
+
+        m.data.recipe.ingredients.forEach(i => {
+            const li = document.createElement("li");
+            li.innerText = i;
+            ingredientList.appendChild(li);
+        });
+
+        const title2 = document.createElement("h4");
+        title2.innerText = m.name + " - Steps";
+        stepList.appendChild(title2);
+
+        m.data.recipe.steps.forEach(s => {
+            const li = document.createElement("li");
+            li.innerText = s;
+            stepList.appendChild(li);
+        });
+    });
+
+    document.getElementById("cookTime").innerText = dayObj.breakfast.recipe?.time || "";
+    document.getElementById("recipeCost").innerText =
+        dayObj.breakfast.cost + dayObj.lunch.cost + dayObj.dinner.cost;
+
+    modal.style.display = "block";
+}
+
+/* ================= CALCULATIONS ================= */
+
+function calculateTotals(plan, budget) {
+
+    let totalCost = 0;
+    let totalCalories = 0;
+
+    plan.days.forEach(day => {
+        totalCost += day.breakfast.cost + day.lunch.cost + day.dinner.cost;
+        totalCalories += day.breakfast.calories + day.lunch.calories + day.dinner.calories;
+    });
+
+    budgetValue.innerText = "₹" + budget;
+    mealCost.innerText = "₹" + totalCost;
+    savedMoney.innerText = "₹" + (budget - totalCost);
+    totalCaloriesEl.innerText = totalCalories;
+
+    drawCharts(budget, totalCost);
+}
+
+/* ================= CHARTS ================= */
+
+function drawCharts(budget, spent) {
+
+    const ctx = document.getElementById("budgetChart");
+
+    if (budgetChart) budgetChart.destroy();
+
+    budgetChart = new Chart(ctx, {
+        type: "doughnut",
+        data: {
+            labels: ["Spent", "Saved"],
+            datasets: [{
+                data: [spent, budget - spent],
+                backgroundColor: ["#ff5a2c", "#4CAF50"]
+            }]
+        },
+        options: {
+            cutout: "70%",
+            plugins: {
+                legend: {
+                    position: "bottom"
+                }
+            }
+        }
+    });
+}
+async function loadHistory() {
+    const res = await apiFetch("/history");
+    const data = await res.json();
+
+    console.log(data.history);
+}
+/* ================= MODAL CLOSE ================= */
+
+const modal = document.getElementById("recipeModal");
+const closeBtn = document.querySelector(".close");
+
+/* OPEN MODAL */
+function openRecipe(dayObj) {
+
+    document.getElementById("recipeTitle").innerText =
+        "Day " + dayObj.day + " Recipes";
+
+    const ingredientList = document.getElementById("ingredientList");
+    const stepList = document.getElementById("stepList");
+
+    ingredientList.innerHTML = "";
+    stepList.innerHTML = "";
+
+    const meals = [
+        { name: "Breakfast", data: dayObj.breakfast },
+        { name: "Lunch", data: dayObj.lunch },
+        { name: "Dinner", data: dayObj.dinner }
+    ];
+
+    meals.forEach(m => {
+
+        if (!m.data.recipe) return;
+
+        const h1 = document.createElement("h4");
+        h1.innerText = m.name + " - Ingredients";
+        ingredientList.appendChild(h1);
+
+        m.data.recipe.ingredients.forEach(i => {
+            const li = document.createElement("li");
+            li.innerText = i;
+            ingredientList.appendChild(li);
+        });
+
+        const h2 = document.createElement("h4");
+        h2.innerText = m.name + " - Steps";
+        stepList.appendChild(h2);
+
+        m.data.recipe.steps.forEach(s => {
+            const li = document.createElement("li");
+            li.innerText = "👉 " + s;
+            stepList.appendChild(li);
+        });
+    });
+
+    document.getElementById("cookTime").innerText =
+        dayObj.breakfast.recipe?.time || "";
+
+    document.getElementById("recipeCost").innerText =
+        dayObj.breakfast.cost + dayObj.lunch.cost + dayObj.dinner.cost;
+
+    /* OPEN MODAL */
+    modal.style.display = "flex";
+    document.body.style.overflow = "hidden";
+}
+
+/* CLOSE MODAL */
+function closeModal() {
+    modal.style.display = "none";
+    document.body.style.overflow = "auto";
+}
+
+/* CLOSE BUTTON */
+closeBtn.addEventListener("click", closeModal);
+
+/* OUTSIDE CLICK */
+window.addEventListener("click", (e) => {
+    if (e.target === modal) {
+        closeModal();
+    }
+});
+/* =========================================
+   LOAD EXISTING PLAN WHEN USER RETURNS
+========================================= */
+
+window.addEventListener(
+    "DOMContentLoaded",
+
+    function () {
+
+        const savedPlan =
+            localStorage.getItem(
+                PLAN_KEY
+            );
+
+
+        if (savedPlan) {
+
+            const planData =
+                JSON.parse(
+                    savedPlan
+                );
+
+
+            renderMeals(
+                planData.plan
+            );
+
+
+            calculateTotals(
+
+                planData.plan,
+
+                planData.budget
+
+            );
+
+
+            showNotificationSection();
+
+        }
+
+    }
+
+);
+/* =========================================
+   SHOW NOTIFICATION SECTION
+========================================= */
+
+function showNotificationSection() {
+
+    notificationSection.style.display =
+        "block";
+
+
+    const enabled =
+        localStorage.getItem(
+
+            NOTIFICATION_ENABLED_KEY
+
+        ) === "true";
+
+
+    if (enabled) {
+
+        notificationSettings.style.display =
+            "block";
+
+
+        notificationStatus.innerText =
+            "✅ Notifications Allowed";
+
+    }
+
+    else {
+
+        notificationSettings.style.display =
+            "none";
+
+
+        notificationStatus.innerText =
+            "❌ Notifications Disabled";
+
+    }
+
+}
+/* =========================================
+   ALLOW NOTIFICATIONS
+========================================= */
+
+allowNotificationBtn.addEventListener(
+
+    "click",
+
+    async function () {
+
+        if (!("Notification" in window)) {
+
+            alert(
+                "This browser does not support notifications."
+            );
+
+            return;
+
+        }
+
+
+        const permission =
+
+            await Notification.requestPermission();
+
+
+        if (
+
+            permission ===
+            "granted"
+
+        ) {
+
+            localStorage.setItem(
+
+                NOTIFICATION_ENABLED_KEY,
+
+                "true"
+
+            );
+
+
+            notificationSettings.style.display =
+                "block";
+
+
+            notificationStatus.innerText =
+                "✅ Notifications Allowed";
+
+
+            alert(
+
+                "✅ Notifications allowed. Now set your meal times."
+
+            );
+
+
+            scheduleNotifications();
+
+        }
+
+        else {
+
+            localStorage.setItem(
+
+                NOTIFICATION_ENABLED_KEY,
+
+                "false"
+
+            );
+
+
+            notificationStatus.innerText =
+                "❌ Notifications Disabled";
+
+
+            alert(
+
+                "Notifications were not allowed."
+
+            );
+
+        }
+
+    }
+
+);
+/* =========================================
+   SAVE NOTIFICATION TIMES
+========================================= */
+
+saveNotificationBtn.addEventListener(
+
+    "click",
+
+    function () {
+
+        const settings = {
+
+            breakfast:
+
+                document.getElementById(
+                    "breakfastTime"
+                ).value,
+
+            lunch:
+
+                document.getElementById(
+                    "lunchTime"
+                ).value,
+
+            dinner:
+
+                document.getElementById(
+                    "dinnerTime"
+                ).value
+
+        };
+
+
+        localStorage.setItem(
+
+            NOTIFICATION_SETTINGS_KEY,
+
+            JSON.stringify(
+                settings
+            )
+
+        );
+
+
+        clearNotificationTimers();
+
+
+        scheduleNotifications();
+
+
+        alert(
+
+            "✅ Meal notification times saved successfully!"
+
+        );
+
+    }
+
+);
+/* =========================================
+   SCHEDULE NOTIFICATIONS
+========================================= */
+
+function scheduleNotifications() {
+
+    const enabled =
+
+        localStorage.getItem(
+
+            NOTIFICATION_ENABLED_KEY
+
+        ) === "true";
+
+
+    if (
+
+        !enabled ||
+
+        Notification.permission !==
+        "granted"
+
+    ) {
+
+        return;
+
+    }
+
+
+    const settings =
+
+        JSON.parse(
+
+            localStorage.getItem(
+
+                NOTIFICATION_SETTINGS_KEY
+
+            ) || "{}"
+
+        );
+
+
+    const meals = [
+
+        {
+
+            name:
+                "Breakfast",
+
+            time:
+                settings.breakfast
+
+        },
+
+        {
+
+            name:
+                "Lunch",
+
+            time:
+                settings.lunch
+
+        },
+
+        {
+
+            name:
+                "Dinner",
+
+            time:
+                settings.dinner
+
+        }
+
+    ];
+
+
+    meals.forEach(
+
+        meal => {
+
+            if (meal.time) {
+
+                scheduleNextNotification(
+                    meal
+                );
+
+            }
+
+        }
+
+    );
+
+}
+function scheduleNextNotification(meal) {
+
+    const now =
+        new Date();
+
+
+    const [
+
+        hours,
+
+        minutes
+
+    ] =
+        meal.time.split(":");
+
+
+    const notificationTime =
+        new Date();
+
+
+    notificationTime.setHours(
+
+        Number(hours),
+
+        Number(minutes),
+
+        0,
+
+        0
+
+    );
+
+
+    if (
+
+        notificationTime <=
+        now
+
+    ) {
+
+        notificationTime.setDate(
+
+            notificationTime.getDate()
+            + 1
+
+        );
+
+    }
+
+
+    const delay =
+
+        notificationTime.getTime()
+        -
+        now.getTime();
+
+
+    const timer =
+
+        setTimeout(
+
+            function () {
+
+
+                new Notification(
+
+                    "🍽️ NutriSmart Meal Reminder",
+
+                    {
+
+                        body:
+
+                            `It is time for your ${meal.name}.`
+
+                    }
+
+                );
+
+
+                scheduleNextNotification(
+
+                    meal
+
+                );
+
+
+            },
+
+            delay
+
+        );
+
+
+    notificationTimers.push(
+
+        timer
+
+    );
+
+}
+/* =========================================
+   DISABLE NOTIFICATIONS
+   CLEAR ACTIVE PLAN
+========================================= */
+
+disableNotificationBtn.addEventListener(
+
+    "click",
+
+    function () {
+
+        const confirmDisable =
+
+            confirm(
+
+                "Disable notifications and generate a new AI plan?"
+
+            );
+
+
+        if (!confirmDisable) {
+
+            return;
+
+        }
+
+
+        /* STOP ALL TIMERS */
+
+        clearNotificationTimers();
+
+
+        /* CLEAR PLAN */
+
+        localStorage.removeItem(
+
+            PLAN_KEY
+
+        );
+
+
+        /* CLEAR SAVED TIMES */
+
+        localStorage.removeItem(
+
+            NOTIFICATION_SETTINGS_KEY
+
+        );
+
+
+        /* CLEAR NOTIFICATION STATUS */
+
+        localStorage.removeItem(
+
+            NOTIFICATION_ENABLED_KEY
+
+        );
+
+
+        /* CLEAR DISPLAY */
+
+        mealContainer.innerHTML = `
+
+            <div class="empty">
+
+                No meal plan generated.
+
+            </div>
+
+        `;
+
+
+        /* RESET ANALYTICS */
+
+        budgetValue.innerText =
+            "₹0";
+
+
+        mealCost.innerText =
+            "₹0";
+
+
+        savedMoney.innerText =
+            "₹0";
+
+
+        totalCaloriesEl.innerText =
+            "0";
+
+
+        if (budgetChart) {
+
+            budgetChart.destroy();
+
+            budgetChart =
+                null;
+
+        }
+
+
+        /* HIDE NOTIFICATION SETTINGS */
+
+        notificationSection.style.display =
+            "none";
+
+
+        notificationSettings.style.display =
+            "none";
+
+
+        notificationStatus.innerText =
+            "❌ Notifications Disabled";
+
+
+        alert(
+
+            "✅ Current plan cleared. You can now generate a new AI plan."
+
+        );
+
+    }
+
+);
+/* =========================================
+   CLEAR ALL NOTIFICATION TIMERS
+========================================= */
+
+function clearNotificationTimers() {
+
+    notificationTimers.forEach(
+
+        timer => {
+
+            clearTimeout(
+                timer
+            );
+
+        }
+
+    );
+
+
+    notificationTimers = [];
+
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    if(window.planManager) window.planManager.applyPlanPageState("budget");
+});
+
+
+
+// ==========================================
+// OVERRIDDEN BY CENTRAL MANAGER
+// ==========================================
+
+async function requestNotificationPermission() {
+    const planObj = window.planManager.getActivePlan();
+    if (!planObj || planObj.planType !== "budget") {
+        alert("Please generate a new plan or confirm the plan switch first.");
+        return;
+    }
+    planObj.notificationsEnabled = true;
+    
+    const times = {
+        breakfast: document.getElementById('breakfastTime')?.value || "08:00",
+        lunch: document.getElementById('lunchTime')?.value || "13:00",
+        evening: document.getElementById('snackTime')?.value || "17:00",
+        dinner: document.getElementById('dinnerTime')?.value || "20:00"
+    };
+    planObj.notificationTimes = times;
+    
+    await window.planManager.activatePlan(planObj);
+}
+
+async function disableNotifications() {
+    await window.planManager.disableActivePlan();
+}
+
+async function saveNotificationSettings() {
+    await requestNotificationPermission();
+}
+
+async function scheduleMealNotifications() {
+    const keys = ["currentPlan", "nutriSmartCurrentPlan", "LOSS_PLAN_KEY", "WEIGHT_GAIN_PLAN_KEY", "GYM_PLAN_KEY", "MEAL_PLAN_KEY", "BUDGET_PLAN_KEY"];
+    let planData = null;
+    for(let k of keys) {
+        const d = localStorage.getItem(k);
+        if(d) {
+            try { planData = JSON.parse(d); break; } catch(e) {}
+        }
+    }
+    
+    const newPlanData = {
+        notificationTimes: {
+            breakfast: document.getElementById('breakfastTime')?.value || "08:00",
+            lunch: document.getElementById('lunchTime')?.value || "13:00",
+            evening: document.getElementById('snackTime')?.value || "17:00",
+            dinner: document.getElementById('dinnerTime')?.value || "20:00"
+        },
+        planData: planData
+    };
+    
+    const success = await window.planManager.requestPlanSwitch("budget", newPlanData);
+    if (!success) {
+        alert("The generated plan is visible, but notifications remain attached to your previously active plan.");
+    }
+}
+
+// Alias for pages that use scheduleNotifications instead of scheduleMealNotifications
+async function scheduleNotifications() {
+    await scheduleMealNotifications();
+}
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const overrideBtn = (id, html, bg, displaySettings, callback) => {
+        const btn = document.getElementById(id);
+        if (btn) {
+            // Remove existing listeners by cloning
+            const newBtn = btn.cloneNode(true);
+            btn.parentNode.replaceChild(newBtn, btn);
+            newBtn.addEventListener("click", async () => {
+                const settings = document.getElementById("notificationSettings");
+                if(settings) settings.style.display = displaySettings;
+                if(html) newBtn.innerHTML = html;
+                if(bg) newBtn.style.background = bg;
+                if(callback) await callback();
+            });
+        }
+    };
+    
+    overrideBtn("allowNotificationBtn", "✅ Notifications Enabled", "#28a745", "block", async () => {
+        if(typeof scheduleMealNotifications === 'function') await scheduleMealNotifications();
+        else if(typeof scheduleNotifications === 'function') await scheduleNotifications();
+    });
+    
+    overrideBtn("allowBtn", "✅ Notifications Enabled", "#28a745", "block", async () => {
+        if(typeof scheduleMealNotifications === 'function') await scheduleMealNotifications();
+        else if(typeof scheduleNotifications === 'function') await scheduleNotifications();
+    });
+    
+    overrideBtn("disableNotificationBtn", "🔔 Allow Notifications", "#f5a623", "none", async () => {
+        if(typeof disableNotifications === 'function') await disableNotifications();
+        // Reset fields
+        document.querySelectorAll('input:not([id*="Time"]), select, textarea').forEach(el => el.value = "");
+    });
+    
+    overrideBtn("disableBtn", "🔔 Allow Notifications", "#f5a623", "none", async () => {
+        if(typeof disableNotifications === 'function') await disableNotifications();
+        document.querySelectorAll('input:not([id*="Time"]), select, textarea').forEach(el => el.value = "");
+    });
+    
+    overrideBtn("saveNotificationBtn", null, null, "block", async () => {
+        if(typeof saveNotificationSettings === 'function') await saveNotificationSettings();
+        alert("✅ Meal notification times saved successfully!");
+    });
+    
+    overrideBtn("saveBtn", null, null, "block", async () => {
+        if(typeof saveNotificationSettings === 'function') await saveNotificationSettings();
+        alert("✅ Meal notification times saved successfully!");
+    });
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recipe</title>
+<style>
+  @page{
+  size: landscape;
+  margin:0;
+}
+
+/* ===== BODY ===== */
+body{
+  font-family:"Georgia","Times New Roman",serif;
+  margin:0;
+  padding:0;
+  background:#fdfdfc;
+  color:#111;
+  width:100vw;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* ===== FULL SCREEN CONTAINER ===== */
+.container{
+  width:100%;
+  min-height:100vh;
+
+  padding:30px 50px;
+  box-sizing:border-box;
+
+   background:linear-gradient(
+    135deg,
+    #fff5ee 0%,
+    #ffe8d6 30%,
+    #ffd7ba 60%,
+    #fff0e6 100%
+  );
+
+
+  backdrop-filter:blur(4px);
+}
+
+/* ===== TITLE ===== */
+.title{
+  text-align:center;
+  font-size:2.5rem;
+  letter-spacing:1px;
+  margin-bottom:20px;
+  color:#ff5722;
+  text-transform:capitalize;
+}
+
+/* ===== TOP ICON ROW ===== */
+.icon-row{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:20px;
+
+  border-top:2px solid #ff5722;
+  border-bottom:2px solid #ff5722;
+
+  padding:15px 0;
+  margin-bottom:20px;
+}
+
+.icon-box,
+.info-box{
+  text-align:center;
+  min-width:100px;
+}
+
+.icon{
+  display:block;
+  font-size:2rem;
+  margin-bottom:8px;
+}
+
+/* ===== INFO ROW ===== */
+.info-row{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:20px;
+
+  padding:10px 0;
+  margin-bottom:25px;
+}
+
+/* ===== MAIN CONTENT ===== */
+.content{
+  display:grid;
+  grid-template-columns:1.2fr 1fr;
+  gap:35px;
+  margin-bottom:30px;
+}
+
+/* ===== SECTION HEADINGS ===== */
+.ingredients h2,
+.preparation h2{
+  font-size:1.5rem;
+  margin-bottom:12px;
+  border-bottom:2px solid #ff5722;
+  padding-bottom:6px;
+  color:#444;
+}
+
+/* ===== INGREDIENTS ===== */
+.ingredients ul{
+  list-style:none;
+  padding-left:0;
+  line-height:1.8;
+  margin:0;
+}
+
+.ingredients li{
+  font-size:1rem;
+  padding:4px 0;
+}
+
+.ingredients li::before{
+  content:"• ";
+  color:#ff5722;
+  font-weight:bold;
+}
+
+/* ===== IMAGE ===== */
+.preparation{
+  margin-top:10px;
+}
+
+.preparation img{
+  width:100%;
+  height:450px;
+  object-fit:cover;
+  border-radius:10px;
+  margin-bottom:10px;
+}
+
+/* ===== STEPS GRID ===== */
+.steps-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:18px 25px;
+}
+/* STEP CARD HOVER EFFECT */
+.step{
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease,
+    background 0.3s ease;
+}
+
+.step:hover{
+  transform:translateY(-5px) scale(1.02);
+
+  background:#fff3eb;
+
+  box-shadow:
+    0 8px 20px rgba(255, 87, 34, 0.18);
+
+  cursor:pointer;
+}
+
+.step{
+  background:#fff9f5;
+  border:1px solid #f2d2c7;
+  border-radius:10px;
+  padding:12px;
+  box-shadow:0 2px 6px rgba(0,0,0,0.05);
+
+  font-size:1rem;
+  line-height:1.5;
+
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  border:1px solid #ff5722
+}
+
+.step-number{
+  background:#ff5722;
+  color:#fff;
+  font-weight:bold;
+  border-radius:50%;
+
+  width:28px;
+  height:28px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  font-size:0.95rem;
+  flex-shrink:0;
+}
+
+/* ===== SAVE BUTTON ===== */
+.save-btn{
+  display:block;
+  margin:0 auto 20px auto;
+
+  background-color:#ff5722;
+  color:#fff;
+
+  border:none;
+  padding:12px 25px;
+
+  border-radius:25px;
+  font-size:1rem;
+
+  cursor:pointer;
+  transition:background 0.3s, transform 0.2s;
+}
+
+.save-btn:hover{
+  background-color:#e64a19;
+  transform:scale(1.05);
+}
+
+.save-btn.saved{
+  background-color:#4caf50;
+}
+
+/* ===== AI FLOATING ICON ===== */
+#ai-icon{
+  position:fixed;
+  bottom:30px;
+  right:30px;
+
+  width:90px;
+  height:90px;
+
+  border-radius:50%;
+  cursor:pointer;
+
+  transition:all 0.4s ease;
+
+  opacity:0;
+  transform:scale(0.8);
+
+  z-index:9999;
+
+  box-shadow:0 4px 12px rgba(0,0,0,0.25);
+}
+
+#ai-icon.show{
+  opacity:1;
+  transform:scale(1);
+  animation:pulse 3s infinite ease-in-out;
+}
+
+#ai-icon:hover{
+  transform:scale(1.15);
+}
+/* ===== TABLET ===== */
+@media(max-width:900px){
+
+  .content{
+    grid-template-columns:1fr;
+  }
+
+  .steps-grid{
+    grid-template-columns:1fr;
+  }
+
+  /* KEEP ICONS IN SAME ROW */
+  .icon-row{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:12px;
+  }
+
+  /* KEEP INFO BOXES IN SAME ROW */
+  .info-row{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:12px;
+  }
+
+  .icon-box,
+  .info-box{
+    min-width:0;
+    font-size:0.9rem;
+    padding:10px;
+  }
+
+  .preparation img{
+    height:320px;
+  }
+}
+
+/* ===== MOBILE ===== */
+@media(max-width:600px){
+
+  .container{
+    padding:15px;
+  }
+
+  .title{
+    font-size:1.6rem;
+  }
+
+  .icon{
+    font-size:1.2rem;
+  }
+
+  /* STILL KEEP IN SINGLE ROW */
+  .icon-row{
+    grid-template-columns:repeat(3,1fr);
+    gap:8px;
+  }
+
+  .info-row{
+    grid-template-columns:repeat(3,1fr);
+    gap:8px;
+  }
+
+  .icon-box,
+  .info-box{
+    font-size:0.75rem;
+    padding:8px;
+  }
+
+  .preparation img{
+    height:230px;
+  }
+
+  #ai-icon{
+    width:60px;
+    height:60px;
+    bottom:20px;
+    right:20px;
+  }
+}
+
+
+#language-select{
+  padding:10px 15px;
+  border-radius:10px;
+  border:none;
+  font-size:1rem;
+  margin-bottom:20px;
+  background:#ff5722;
+  color:#fff5ee;
+  cursor:pointer;
+}
+
+@media (max-width: 768px) {
+    .dashboard {
+        grid-template-columns: 1fr !important;
+        margin-left: 0 !important;
+    }
+    .panel {
+        margin-right: 0 !important;
+        margin-bottom: 20px !important;
+    }
+    .modal-content {
+        width: 95% !important;
+        padding: 15px !important;
+    }
+    .container {
+        padding: 10px !important;
+    }
+}
+
+</style>
+</head>
+<body>
+<div class="container">
+  <h1 class="title" id="recipe-title">Recipe Title</h1>
+  <button id="save-btn" class="save-btn">❤️ Save Recipe</button>
+  <select id="language-select">
+
+  <option value="en">English</option>
+
+  <option value="ta">Tamil</option>
+
+  <option value="hi">Hindi</option>
+
+  <option value="te">Telugu</option>
+
+  <option value="ml">Malayalam</option>
+
+  <option value="kn">Kannada</option>
+  <option value="mr">Marathi</option>
+  <option value="gu">Gujarati</option>
+  <option value="bn">Bengali</option>
+  <option value="pa">Punjabi</option>
+  <option value="ur">Urdu</option>
+  <option value="or">Odia</option>
+  <option value="as">Assamese</option>
+  <option value="fr">French</option>
+  <option value="es">Spanish</option>
+  <option value="de">German</option>
+  <option value="it">Italian</option>
+  <option value="ko">Korean</option>
+  <option value="zh-CN">Chinese</option>
+  <option value="th">Thai</option>
+  <option value="vi">Vietnamese</option>
+  <option value="ar">Arabic</option>
+  <option value="ru">Russian</option>
+  
+
+
+</select>
+  <!-- Prep/Cook/Servings -->
+  <div class="icon-row">
+    <div class="icon-box">
+      <span class="icon">⏰</span>
+      <p>Prep time:<br><strong id="prep-time"></strong></p>
+    </div>
+    <div class="icon-box">
+      <span class="icon">🔥</span>
+      <p>Cook time:<br><strong id="cook-time"></strong></p>
+    </div>
+    <div class="icon-box">
+      <span class="icon">🍴</span>
+      <p>Servings:<br><strong id="servings"></strong></p>
+    </div>
+  </div>
+
+
+  <!-- Course/Cuisine/Diet -->
+  <div class="info-row">
+    <div class="info-box">🍽️ <strong>Course:</strong> <span id="course"></span></div>
+    <div class="info-box">🌍 <strong>Cuisine:</strong> <span id="cuisine"></span></div>
+    <div class="info-box">🥗 <strong>Diet:</strong> <span id="diet"></span></div>
+  </div>
+
+  <!-- Ingredients + Image -->
+  <div class="content">
+    <div class="ingredients">
+      <h2>Ingredients</h2>
+      <ul id="ingredients-list"></ul>
+    </div>
+    <div class="preparation">
+      <img src="" alt="Recipe Image" id="recipe-img">
+    </div>
+  </div>
+
+  <!-- Preparation Steps in Compact Two Columns -->
+  <div class="preparation">
+    <h2>Preparation</h2>
+    <div class="steps-grid" id="prep-steps"></div>
+  </div>
+</div>
+
+<script src="./js/api_config.js"></script>
+<script>
+
+let originalRecipe = {
+  title: "",
+  ingredients: [],
+  steps: []
+};
+
+// ===== Translate API =====
+async function translateText(text, targetLang){
+
+  if(targetLang === "en"){
+    return text;
+  }
+
+  try{
+
+    const response = await apiFetch("/translate", {
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json"
+      },
+      body:JSON.stringify({
+        text:text,
+        target:targetLang
+      })
+    });
+
+    const data = await response.json();
+
+    return data.translatedText || text;
+
+  }catch(err){
+    console.error("Translation error:", err);
+    return text;
+  }
+}
+
+// ===== Translate Entire Recipe =====
+async function translateRecipe(lang){
+
+  // ===== TITLE =====
+  document.getElementById("recipe-title").innerText =
+    await translateText(originalRecipe.title, lang);
+
+  // ===== INGREDIENTS =====
+  const ingredients =
+    document.querySelectorAll("#ingredients-list li");
+
+  for(let i=0;i<ingredients.length;i++){
+
+    ingredients[i].innerText =
+      await translateText(originalRecipe.ingredients[i], lang);
+  }
+
+  // ===== STEPS =====
+  const steps =
+    document.querySelectorAll(".step div:last-child");
+
+  for(let i=0;i<steps.length;i++){
+
+    steps[i].innerText =
+      await translateText(originalRecipe.steps[i], lang);
+  }
+
+  // ===== UI TEXT =====
+  document.querySelector(".ingredients h2").innerText =
+    await translateText("Ingredients", lang);
+
+  document.querySelector(".preparation h2").innerText =
+    await translateText("Preparation", lang);
+
+  document.getElementById("save-btn").innerText =
+    await translateText("Save Recipe", lang);
+}
+
+// ===== Language Change =====
+document
+.getElementById("language-select")
+.addEventListener("change", (e)=>{
+
+  translateRecipe(e.target.value);
+
+});
+
+  // ===== Get query param =====
+  function getQueryParam(param) {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(param);
+  }
+
+  const recipeName = decodeURIComponent(getQueryParam('name') || "");
+
+  // ===== Convert string to Title Case =====
+  function toTitleCase(str) {
+    if (!str) return "";
+    return str.replace(/\w\S*/g, txt =>
+      txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
+    );
+  }
+
+  // ===== Load Recipe =====
+  async function loadRecipe() {
+    try {
+      const res = await apiFetch(`/get_recipe?name=${encodeURIComponent(recipeName)}`);
+      if (!res.ok) throw new Error("Recipe not found");
+      const recipe = await res.json();
+
+      // Fill recipe details
+      document.getElementById("recipe-title").innerText = toTitleCase(recipe.TranslatedRecipeName);
+      originalRecipe.title =
+toTitleCase(recipe.TranslatedRecipeName);
+      document.getElementById("recipe-img").src = (recipe.image || "").replace('/static', '.');
+      document.getElementById("course").innerText = recipe.Course || "-";
+      document.getElementById("cuisine").innerText = recipe.Cuisine || "-";
+      document.getElementById("diet").innerText = recipe.Diet || "-";
+      document.getElementById("prep-time").innerText = recipe.PrepTimeInMins + " min";
+      document.getElementById("cook-time").innerText = recipe.CookTimeInMins + " min";
+      document.getElementById("servings").innerText = recipe.Servings || "-";
+
+      // Ingredients list
+      const ingList = document.getElementById("ingredients-list");
+      ingList.innerHTML = "";
+      recipe.TranslatedIngredients.forEach(ing => {
+        const li = document.createElement("li");
+        li.textContent = ing;
+        ingList.appendChild(li);
+      });
+      originalRecipe.ingredients =
+recipe.TranslatedIngredients;
+      // Preparation steps
+      const prepDiv = document.getElementById("prep-steps");
+      prepDiv.innerHTML = "";
+      recipe.TranslatedInstructions.forEach((step, index) => {
+        const div = document.createElement("div");
+        div.className = "step";
+        originalRecipe.steps =
+recipe.TranslatedInstructions;
+
+        const num = document.createElement("div");
+        num.className = "step-number";
+        num.textContent = index + 1;
+
+        const text = document.createElement("div");
+        let formatted = step.trim();
+        if (!formatted.endsWith(".")) formatted += ".";
+        text.textContent = formatted;
+
+        div.appendChild(num);
+        div.appendChild(text);
+        prepDiv.appendChild(div);
+      });
+    } catch (err) {
+      console.error("Error loading recipe:", err);
+      document.getElementById("recipe-title").innerText = "Recipe Not Found";
+    }
+  }
+
+  // ===== Run automatically if recipe name exists =====
+  if (recipeName) loadRecipe();
+
+// ===============================
+// ❤️ SAVE / UNSAVE LOGIC (with backend sync)
+// ===============================
+const recipeTitleEl = document.getElementById("recipe-title");
+const recipeImgEl = document.getElementById("recipe-img");
+const saveBtn = document.getElementById("save-btn");
+let userEmail = null;
+
+// === Get logged-in user ===
+async function fetchUser() {
+  try {
+    const res = await apiFetch("/api/profile", { credentials: "include" });
+    if (!res.ok) throw new Error("No session");
+    const data = await res.json();
+    userEmail = data.email || null;
+    console.log("Logged in as:", userEmail);
+  } catch (err) {
+    console.warn("User not logged in:", err);
+    userEmail = null;
+  }
+}
+
+// === Update Save Button Status from Backend ===
+async function updateSaveButton() {
+  try {
+    const res = await apiFetch("/api/get_favorites", { credentials: "include" });
+    if (!res.ok) throw new Error("Not logged in or no favorites");
+    const data = await res.json();
+    const favorites = data.favorites || [];
+
+    const title = originalRecipe.title || recipeTitleEl.innerText.trim();
+    const isSaved = favorites.some(r => r.title === title);
+
+    if (isSaved) {
+      saveBtn.textContent = "✅ Saved!";
+      saveBtn.classList.add("saved");
+    } else {
+      saveBtn.textContent = "❤️ Save Recipe";
+      saveBtn.classList.remove("saved");
+    }
+  } catch (err) {
+    console.warn("No user session or error fetching favorites:", err);
+    saveBtn.textContent = "❤️ Save Recipe";
+  }
+}
+
+// === Handle Save / Unsave Click ===
+saveBtn.addEventListener("click", async () => {
+  if (!userEmail) {
+    saveBtn.textContent = "🔒 Login required";
+    saveBtn.disabled = true;
+    setTimeout(() => {
+      saveBtn.textContent = "❤️ Save Recipe";
+      saveBtn.disabled = false;
+    }, 2000);
+    return;
+  }
+
+  const recipe = {
+    title: originalRecipe.title || recipeTitleEl.innerText.trim(),
+    image: recipeImgEl.getAttribute('src')
+  };
+
+  let favorites = JSON.parse(localStorage.getItem("favorites")) || [];
+  const index = favorites.findIndex(r => r.title === recipe.title);
+
+  if (index === -1) {
+    // --- SAVE RECIPE ---
+    favorites.push(recipe);
+    localStorage.setItem("favorites", JSON.stringify(favorites));
+    saveBtn.textContent = "✅ Saved!";
+    saveBtn.classList.add("saved");
+
+    try {
+      const formData = new FormData();
+      formData.append("title", recipe.title);
+      formData.append("image", recipe.image);
+
+      const res = await apiFetch("/api/add_favorite", {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Backend save failed");
+    } catch (err) {
+      console.error("Error saving to backend:", err);
+    }
+
+  } else {
+    // --- UNSAVE RECIPE ---
+    favorites.splice(index, 1);
+    localStorage.setItem("favorites", JSON.stringify(favorites));
+    saveBtn.textContent = "❤️ Save Recipe";
+    saveBtn.classList.remove("saved");
+
+    try {
+      const formData = new FormData();
+      formData.append("title", recipe.title);
+
+      const res = await apiFetch("/api/remove_favorite", {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Backend remove failed");
+    } catch (err) {
+      console.error("Error removing from backend:", err);
+    }
+  }
+});
+
+// === Initialize on page load ===
+window.addEventListener("load", async () => {
+  await fetchUser();
+  await updateSaveButton();
+});
+
+</script>
+
+<!-- Floating AI Icon -->
+<img id="ai-icon" src="./images/ai.png" alt="AI Assistant">
+<script>
+// ===== Floating AI Icon Effect (always visible) =====
+const aiIcon = document.getElementById("ai-icon");
+
+// Make sure it's visible once the page loads
+window.addEventListener("load", () => {
+  aiIcon.classList.add("show");
+});
+
+// On click → go to /ai page
+aiIcon.addEventListener("click", () => {
+  aiIcon.style.transform = "scale(1.2)";
+  aiIcon.style.transition = "transform 0.3s ease";
+  setTimeout(() => {
+    window.location.href = "./aichat.html";
+  }, 300); // smooth transition before redirect
+});
+</script>
+</body>
+</html>
