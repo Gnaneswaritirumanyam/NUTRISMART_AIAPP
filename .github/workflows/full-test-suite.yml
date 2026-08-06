@@ -61,7 +61,7 @@ jobs:
         run: docker run --rm -v "${{ github.workspace }}:/workspace" -w /workspace aquasec/trivy fs . --format json --output trivy-results.json || true
       - name: Generate Security Excel Report
         run: |
-          npm install exceljs
+          npm install exceljs --legacy-peer-deps
           node scripts/generate-security-excel.js || true
       - name: Upload Security Findings
         uses: actions/upload-artifact@v4
