@@ -26,7 +26,7 @@ jobs:
       - name: Upload Selenium Test Report
         uses: actions/upload-artifact@v4
         with:
-          name: Selenium-Test-Report
+          name: 'Selenium - Web E2E Test Report'
           path: selenium-tests/tests/Test_Report.xlsx
 
   appium_mobile_tests:
@@ -47,7 +47,7 @@ jobs:
       - name: Upload Appium Test Report
         uses: actions/upload-artifact@v4
         with:
-          name: Appium-Test-Report
+          name: 'Appium - Mobile E2E Test Report'
           path: appium-tests/Appium_Test_Report.xlsx
 
   security_assessment:
@@ -71,7 +71,7 @@ jobs:
       - name: Upload Security Findings
         uses: actions/upload-artifact@v4
         with:
-          name: Security-Review-Results
+          name: 'Security Assessment & Findings Report'
           path: Security_Findings.xlsx
 
   load_tests:
@@ -92,7 +92,7 @@ jobs:
       - name: Upload Load Test Report
         uses: actions/upload-artifact@v4
         with:
-          name: Load-Test-Report
+          name: 'Load Tests & Performance Report'
           path: load-tests/load_test_report.txt
 
   final_summary:
@@ -109,5 +109,5 @@ jobs:
       - name: Upload Final Summary Report
         uses: actions/upload-artifact@v4
         with:
-          name: Final-Summary-Report
+          name: 'ALL-TEST-EXCEL-REPORTS-MASTER'
           path: Final_Summary_Report.txt
