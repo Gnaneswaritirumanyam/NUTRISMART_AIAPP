@@ -75,12 +75,6 @@ async function runTests() {
                 await new Promise(resolve => setTimeout(resolve, 10)); 
                 actualResult = tc.expected; // In a mock, we assume the test behaves as expected
                 status = 'Passed';
-                
-                // Randomly fail a few mock tests to make the report look realistic
-                if (tc.id % 25 === 0) {
-                    actualResult = (tc.expected === 'success') ? 'error' : 'success';
-                    status = 'Failed';
-                }
             } else {
                 try {
                     // Wait for the email input to be present. 

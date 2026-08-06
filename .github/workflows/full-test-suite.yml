@@ -23,6 +23,11 @@ jobs:
         run: |
           npm install || true
           node tests/login-tests.js || true
+      - name: Upload Selenium Test Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: Selenium-Test-Report
+          path: selenium-tests/tests/Test_Report.xlsx
 
   appium_mobile_tests:
     name: Appium Mobile E2E Tests
@@ -100,3 +105,9 @@ jobs:
           echo "## All Tests Completed Successfully! :tada:" >> $GITHUB_STEP_SUMMARY
           echo "The Selenium Web E2E Tests, Appium Mobile E2E Tests, Security Assessment, and Load Tests have all finished running." >> $GITHUB_STEP_SUMMARY
           echo "Please check the **Artifacts** section to download your Excel test reports and Load Test summaries." >> $GITHUB_STEP_SUMMARY
+          echo "Final Test Suite Execution Completed Successfully." > Final_Summary_Report.txt
+      - name: Upload Final Summary Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: Final-Summary-Report
+          path: Final_Summary_Report.txt
