@@ -1,19 +1,13 @@
 {
   "name": "selenium-tests",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "directories": {
-    "test": "tests"
-  },
+  "description": "Selenium E2E Tests",
+  "main": "tests/login-tests.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node tests/login-tests.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
-    "exceljs": "^4.4.0",
-    "selenium-webdriver": "^4.46.0"
+    "selenium-webdriver": "^4.20.0",
+    "exceljs": "^4.4.0"
   }
 }

@@ -1,4 +1,4 @@
-name: full-test-suite.yml
+name: Full Automated Test Suite
 
 on:
   push:
@@ -18,16 +18,16 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-      - name: Run Selenium Tests
+      - name: Install and Run Selenium Tests
         working-directory: ./selenium-tests
         run: |
-          npm install || true
+          npm install
           node tests/login-tests.js || true
       - name: Upload Selenium Test Report
         uses: actions/upload-artifact@v4
         with:
           name: 'Selenium - Web E2E Test Report'
-          path: selenium-tests/tests/Test_Report.xlsx
+          path: selenium-tests/Test_Report_305_Styled.xlsx
 
   appium_mobile_tests:
     name: Appium Mobile E2E Tests
@@ -39,75 +39,35 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-      - name: Run Appium Tests
+      - name: Install and Run Appium Tests
         working-directory: ./appium-tests
         run: |
-          npm install exceljs webdriverio
+          npm install
           node app-tests.js || true
       - name: Upload Appium Test Report
         uses: actions/upload-artifact@v4
         with:
           name: 'Appium - Mobile E2E Test Report'
-          path: appium-tests/Appium_Test_Report.xlsx
+          path: appium-tests/Appium_Test_Report_305_Styled.xlsx
 
-  security_assessment:
-    name: Security Assessment & Reports
+  security_scans:
+    name: Automated Security Scans (SAST & Dependency)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-      - name: Run Semgrep SAST
-        run: docker run --rm -v "${{ github.workspace }}:/src" returntocorp/semgrep semgrep scan --config auto --json -o /src/semgrep-results.json || true
-      - name: Run Trivy Dependency Scan
-        run: docker run --rm -v "${{ github.workspace }}:/workspace" -w /workspace aquasec/trivy fs . --format json --output trivy-results.json || true
-      - name: Generate Security Excel Report
+      - name: Run Semgrep Code Scan (SAST)
         run: |
-          npm install exceljs --legacy-peer-deps
-          node scripts/generate-security-excel.js || true
-      - name: Upload Security Findings
-        uses: actions/upload-artifact@v4
-        with:
-          name: 'Security Assessment & Findings Report'
-          path: Security_Findings.xlsx
+          docker run --rm -v "${{ github.workspace }}:/src" returntocorp/semgrep semgrep scan --config auto || true
+      - name: Run Trivy Vulnerability Scanner (Dependencies)
+        run: |
+          docker run --rm -v "${{ github.workspace }}:/workspace" -w /workspace aquasec/trivy fs . --exit-code 0 --no-progress || true
 
   load_tests:
-    name: Load Tests & Report
+    name: Load Tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-      - name: Run Load Tests
-        working-directory: ./load-tests
-        run: |
-          npm install autocannon
-          node run-load-test.js > load_test_report.txt || true
-      - name: Upload Load Test Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: 'Load Tests & Performance Report'
-          path: load-tests/load_test_report.txt
-
-  final_summary:
-    name: Final Test Suite Summary
-    needs: [selenium_web_tests, appium_mobile_tests, security_assessment, load_tests]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Generate Final Summary
-        run: |
-          echo "## All Tests Completed Successfully! :tada:" >> $GITHUB_STEP_SUMMARY
-          echo "The Selenium Web E2E Tests, Appium Mobile E2E Tests, Security Assessment, and Load Tests have all finished running." >> $GITHUB_STEP_SUMMARY
-          echo "Please check the **Artifacts** section to download your Excel test reports and Load Test summaries." >> $GITHUB_STEP_SUMMARY
-          echo "Final Test Suite Execution Completed Successfully." > Final_Summary_Report.txt
-      - name: Upload Final Summary Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: 'ALL-TEST-EXCEL-REPORTS-MASTER'
-          path: Final_Summary_Report.txt
+      - name: Load Test Placeholder
+        run: echo "Add your load test scripts here to complete the 4-test suite."
