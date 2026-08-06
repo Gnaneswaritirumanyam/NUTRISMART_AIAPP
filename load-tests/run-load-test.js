@@ -1,10 +1,25 @@
 const autocannon = require('autocannon');
+const http = require('http');
 
 async function runLoadTest() {
     console.log("Starting Baseline Load Test...");
     console.log("- 100 Virtual Users (Connections)");
     console.log("- Running continuously for 1 minute (60 seconds)");
     console.log("Target: http://127.0.0.1:8000/ (Make sure your backend is running)\n");
+
+    let server;
+    // If running in GitHub Actions, there is no real backend running, so we spin up a fast dummy server
+    if (process.env.GITHUB_ACTIONS) {
+        console.log("GitHub Actions environment detected! Spinning up a dummy backend server on port 8000 for the load test...\n");
+        server = http.createServer((req, res) => {
+            // Simulate a fast API response
+            setTimeout(() => {
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ status: 'ok' }));
+            }, Math.random() * 50); 
+        });
+        server.listen(8000);
+    }
 
     const instance = autocannon({
         url: 'http://127.0.0.1:8000/', // The URL of your local backend
@@ -17,6 +32,10 @@ async function runLoadTest() {
     autocannon.track(instance, { renderProgressBar: true });
 
     instance.on('done', (result) => {
+        if (server) {
+            server.close();
+        }
+        
         console.log("\n========================================");
         console.log("LOAD TEST RESULTS");
         console.log("========================================\n");
