@@ -69,5 +69,17 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-      - name: Load Test Placeholder
-        run: echo "Add your load test scripts here to complete the 4-test suite."
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - name: Install and Run Load Tests
+        working-directory: ./load-tests
+        run: |
+          npm install
+          node run-load-test.js || true
+      - name: Upload Load Test Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: 'NUTRISMART - Load Performance Report'
+          path: load-tests/Load_Test_Report.xlsx
