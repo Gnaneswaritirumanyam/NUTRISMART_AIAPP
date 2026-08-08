@@ -13,6 +13,8 @@ import os
 import subprocess
 from locust import HttpUser, task, between, events
 
+import sys
+
 # ─────────────────────────────────────────────────────────
 # PRE-GENERATE AUTH TOKEN TO BYPASS RATE LIMITING
 # ─────────────────────────────────────────────────────────
@@ -20,7 +22,7 @@ TOKEN = None
 try:
     script_dir = os.path.dirname(os.path.abspath(__file__))
     gen_script = os.path.join(os.path.dirname(script_dir), "generate_test_token.py")
-    TOKEN = subprocess.check_output(["python", gen_script]).decode().strip()
+    TOKEN = subprocess.check_output([sys.executable, gen_script]).decode().strip()
     print(f"Generated test token successfully.")
 except Exception as e:
     print(f"Warning: Could not generate test token. {e}")
