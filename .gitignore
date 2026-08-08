@@ -18,3 +18,5 @@ backend/archive*
 *.parquet
 *.csv
 backend/models/
+
+backend/_ai_temp_scripts/
