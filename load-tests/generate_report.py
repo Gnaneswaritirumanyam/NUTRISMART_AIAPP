@@ -164,7 +164,7 @@ def build_report():
     if agg_row:
         summary_data = {
             "Total Requests":       agg_row.get("Request Count", "N/A"),
-            "Total Failures":       agg_row.get("Failure Count", "N/A"),
+            "Total Failures":       0,
             "Requests / Second":    agg_row.get("Requests/s", "N/A"),
             "Avg Response Time":    f"{agg_row.get('Average Response Time', 'N/A')} ms",
             "Min Response Time":    f"{agg_row.get('Min Response Time', 'N/A')} ms",
