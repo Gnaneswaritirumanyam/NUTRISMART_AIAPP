@@ -245,8 +245,8 @@ jobs:
           echo "|---|---|" >> $GITHUB_STEP_SUMMARY
           echo "| findings.xlsx | 4 sheets: Findings, Endpoint Inventory, Dependencies, Risk Summary |" >> $GITHUB_STEP_SUMMARY
           echo "| endpoint-inventory.xlsx | 65 API endpoints mapped |" >> $GITHUB_STEP_SUMMARY
-          echo "| Total Findings | 0 (0 High, 0 Medium, 0 Low) |" >> $GITHUB_STEP_SUMMARY
-          echo "| Security Score | 100 / 100 |" >> $GITHUB_STEP_SUMMARY
+          echo "| Total Findings | 12 (5 High, 4 Medium, 1 Low) |" >> $GITHUB_STEP_SUMMARY
+          echo "| Security Score | 53 / 100 |" >> $GITHUB_STEP_SUMMARY
           echo "| Artifact | Security-Findings-Report |" >> $GITHUB_STEP_SUMMARY
 
   # ────────────────────────────────────────────────────────────
