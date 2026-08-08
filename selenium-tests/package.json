@@ -1,0 +1,17 @@
+{
+  "name": "selenium-tests",
+  "version": "1.0.0",
+  "description": "Selenium E2E Web Tests",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha tests/**/*.js --timeout 10000",
+    "generate-cases": "node generate_test_cases.js"
+  },
+  "dependencies": {
+    "chai": "^4.3.7",
+    "chromedriver": "^123.0.1",
+    "exceljs": "^4.4.0",
+    "mocha": "^10.2.0",
+    "selenium-webdriver": "^4.19.0"
+  }
+}
