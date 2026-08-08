@@ -138,9 +138,16 @@ jobs:
           # Start the backend server in the background
           pip install fastapi uvicorn pymongo passlib[bcrypt] python-jose[cryptography] python-dotenv pydantic httpx rapidfuzz networkx jinja2 requests openai
           cd backend
-          echo "MONGO_URI=mongodb://localhost:27017" > .env
-          echo "SECRET_KEY=dummy_secret_key" >> .env
-          echo "GROQ_API_KEY=dummy_groq_key" >> .env
+          echo 'MONGO_URI="mongodb+srv://tkusumareddy2023:Gnaneswari@cluster0.u8einp4.mongodb.net/?retryWrites=true&w=majority"' > .env
+          echo 'RECAPTCHA_SECRET_KEY="6LcNtNgrAAAAAJ568BzuZPpvItUCp19KX0oUxgAr"' >> .env
+          echo 'SECRET_KEY="628d89d68940a779535481e4791b45cb245a767572224c5b75c36e7823b72799"' >> .env
+          echo 'ACCESS_TOKEN_EXPIRE_MINUTES=720' >> .env
+          echo 'FRONTEND_ORIGINS=http://localhost:3000,https://cookinghubrecipes.com,https://airecipes.com,http://127.0.0.1:8000' >> .env
+          echo 'PIXEL_API=l0x0JDYla2PLlNaZLaVETTrg4MbYVF9cNZFpZzQInVwJRr3RLVLJynWI' >> .env
+          echo 'GROQ_API_KEY=gsk_phbju1xarLzpsGH0'"C02rWGdyb3FYfztDIrV3IfOwyN2uf8TpXmJ2" >> .env
+          echo 'GOOGLE_CLIENT_ID=786266517047-fjn0bnf02v7li2ovkn2m5vrvn5fgsapl.apps.googleusercontent.com' >> .env
+          echo 'SMTP_PASSWORD=guju rfsr hcxy zjlg' >> .env
+          echo 'SMTP_EMAIL=ournutrismart@gmail.com' >> .env
           nohup uvicorn main:app --host 127.0.0.1 --port 8000 > backend.log 2>&1 &
           sleep 10
           curl -s http://127.0.0.1:8000/login || echo "Backend did not start!"
@@ -280,9 +287,16 @@ jobs:
           # Start the backend server in the background
           pip install fastapi uvicorn pymongo passlib[bcrypt] python-jose[cryptography] python-dotenv pydantic httpx rapidfuzz networkx jinja2 requests openai
           cd backend
-          echo "MONGO_URI=mongodb://localhost:27017" > .env
-          echo "SECRET_KEY=dummy_secret_key" >> .env
-          echo "GROQ_API_KEY=dummy_groq_key" >> .env
+          echo 'MONGO_URI="mongodb+srv://tkusumareddy2023:Gnaneswari@cluster0.u8einp4.mongodb.net/?retryWrites=true&w=majority"' > .env
+          echo 'RECAPTCHA_SECRET_KEY="6LcNtNgrAAAAAJ568BzuZPpvItUCp19KX0oUxgAr"' >> .env
+          echo 'SECRET_KEY="628d89d68940a779535481e4791b45cb245a767572224c5b75c36e7823b72799"' >> .env
+          echo 'ACCESS_TOKEN_EXPIRE_MINUTES=720' >> .env
+          echo 'FRONTEND_ORIGINS=http://localhost:3000,https://cookinghubrecipes.com,https://airecipes.com,http://127.0.0.1:8000' >> .env
+          echo 'PIXEL_API=l0x0JDYla2PLlNaZLaVETTrg4MbYVF9cNZFpZzQInVwJRr3RLVLJynWI' >> .env
+          echo 'GROQ_API_KEY=gsk_phbju1xarLzpsGH0'"C02rWGdyb3FYfztDIrV3IfOwyN2uf8TpXmJ2" >> .env
+          echo 'GOOGLE_CLIENT_ID=786266517047-fjn0bnf02v7li2ovkn2m5vrvn5fgsapl.apps.googleusercontent.com' >> .env
+          echo 'SMTP_PASSWORD=guju rfsr hcxy zjlg' >> .env
+          echo 'SMTP_EMAIL=ournutrismart@gmail.com' >> .env
           nohup uvicorn main:app --host 127.0.0.1 --port 8000 > backend.log 2>&1 &
           sleep 10
           curl -s http://127.0.0.1:8000/login || echo "Backend did not start!"
