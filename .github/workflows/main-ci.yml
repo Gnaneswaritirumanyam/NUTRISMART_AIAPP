@@ -1,0 +1,255 @@
+name: "Unified CI/CD Pipeline"
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+  actions: write
+
+jobs:
+  # ────────────────────────────────────────────────────────────
+  # JOB 1 — Security Assessment Reports
+  # ────────────────────────────────────────────────────────────
+  security-test-report:
+    name: "Security — Assessment Reports"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install openpyxl
+
+      - name: Generate Security Assessment Excel Reports
+        run: |
+          cd "Vulnerability Test Results"
+          python generate_reports.py
+          echo "Reports generated:"
+          ls -lh *.xlsx
+
+      - name: Upload Security Findings Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: "Security-Findings-Report"
+          path: |
+            Vulnerability Test Results/findings.xlsx
+            Vulnerability Test Results/endpoint-inventory.xlsx
+            Vulnerability Test Results/security-review.md
+            Vulnerability Test Results/executive-summary.md
+            Vulnerability Test Results/dependency-report.md
+          retention-days: 30
+
+  # ────────────────────────────────────────────────────────────
+  # JOB 2 — Appium Mobile Test Cases Report
+  # ────────────────────────────────────────────────────────────
+  appium-test-report:
+    name: "Appium — Mobile Test Cases Report"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install openpyxl
+
+      - name: Generate Appium Test Cases Excel Report
+        run: |
+          cd appium-tests
+          python generate_test_cases.py
+
+      - name: Upload Appium Test Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: "Appium-Mobile-Test-Report"
+          path: appium-tests/Test_Cases_Summary_and_Details.xlsx
+          retention-days: 30
+
+  # ────────────────────────────────────────────────────────────
+  # JOB 3 — Selenium Web E2E Tests + Test Cases Report
+  # ────────────────────────────────────────────────────────────
+  selenium-test-report:
+    name: "Selenium — Web E2E Tests & Report"
+    runs-on: ubuntu-latest
+    services:
+      mongodb:
+        image: mongo:latest
+        ports:
+          - 27017:27017
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: selenium-tests/package-lock.json
+
+      - name: Install Node dependencies
+        run: |
+          cd selenium-tests
+          npm install
+
+      - name: Generate Selenium Test Cases Excel Report
+        run: |
+          cd selenium-tests
+          node generate_test_cases.js
+
+      - name: Install Google Chrome
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y google-chrome-stable
+
+      - name: Run Selenium Live E2E Tests (Headless Chrome)
+        run: |
+          # Start the backend server
+          pip install fastapi uvicorn pymongo passlib[bcrypt] python-jose[cryptography] python-dotenv pydantic httpx rapidfuzz networkx jinja2 requests openai
+          cd backend
+          # Overwrite .env to use the local GitHub Actions MongoDB service
+          echo 'MONGO_URI="mongodb://127.0.0.1:27017/nutrismart"' > .env
+          echo 'RECAPTCHA_SECRET_KEY="test_key"' >> .env
+          echo 'SECRET_KEY="test_secret"' >> .env
+          echo 'ACCESS_TOKEN_EXPIRE_MINUTES=720' >> .env
+          echo 'FRONTEND_ORIGINS=http://localhost:3000,http://127.0.0.1:8000' >> .env
+          nohup uvicorn main:app --host 127.0.0.1 --port 8000 > backend.log 2>&1 &
+          sleep 5
+          cd ../selenium-tests
+          APP_URL=http://127.0.0.1:8000/login HEADLESS=true npx mocha tests/**/*.js --timeout 30000 --reporter spec 2>&1 || true
+        continue-on-error: true
+
+      - name: Upload Selenium Test Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: "Selenium-Web-Test-Report"
+          path: selenium-tests/Web_Test_Cases.xlsx
+          retention-days: 30
+
+  # ────────────────────────────────────────────────────────────
+  # JOB 4 — Load / Baseline Test Report
+  # ────────────────────────────────────────────────────────────
+  load-test-report:
+    name: "Load Test — Baseline Report"
+    runs-on: ubuntu-latest
+    services:
+      mongodb:
+        image: mongo:latest
+        ports:
+          - 27017:27017
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install openpyxl locust fastapi uvicorn pymongo passlib[bcrypt] python-jose[cryptography] python-dotenv pydantic httpx rapidfuzz networkx jinja2 requests openai
+
+      - name: Create results directory
+        run: mkdir -p load-tests/results
+
+      - name: Run Locust Headless Load Test
+        run: |
+          cd backend
+          # Overwrite .env to use the local GitHub Actions MongoDB service
+          echo 'MONGO_URI="mongodb://127.0.0.1:27017/nutrismart"' > .env
+          echo 'RECAPTCHA_SECRET_KEY="test_key"' >> .env
+          echo 'SECRET_KEY="test_secret"' >> .env
+          echo 'ACCESS_TOKEN_EXPIRE_MINUTES=720' >> .env
+          echo 'FRONTEND_ORIGINS=http://localhost:3000,http://127.0.0.1:8000' >> .env
+          nohup uvicorn main:app --host 127.0.0.1 --port 8000 > backend.log 2>&1 &
+          sleep 5
+          cd ../load-tests
+          locust -f locust/locustfile.py --host=http://127.0.0.1:8000 --users=100 --spawn-rate=10 --run-time=60s --headless --csv=results/baseline --html=results/locust-report.html --only-summary 2>&1 || true
+
+      - name: Generate Load Test Excel Report
+        run: |
+          cd load-tests
+          python generate_report.py
+
+      - name: Upload Load Test Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: "Load-Test-Reports"
+          path: |
+            load-tests/results/Load_Test_Report.xlsx
+            load-tests/results/baseline_stats.csv
+            load-tests/results/baseline_history.csv
+            load-tests/results/baseline_failures.csv
+            load-tests/results/locust-report.html
+          retention-days: 30
+
+  # ────────────────────────────────────────────────────────────
+  # JOB 5 — Consolidate All Reports into One Artifact
+  # ────────────────────────────────────────────────────────────
+  consolidate-all-reports:
+    name: "Consolidate All Test Reports"
+    runs-on: ubuntu-latest
+    needs:
+      - appium-test-report
+      - selenium-test-report
+      - security-test-report
+      - load-test-report
+    if: always()
+    steps:
+      - name: Download — Appium Report
+        uses: actions/download-artifact@v4
+        with:
+          name: "Appium-Mobile-Test-Report"
+          path: all-reports/01-Appium-Mobile
+        continue-on-error: true
+
+      - name: Download — Selenium Report
+        uses: actions/download-artifact@v4
+        with:
+          name: "Selenium-Web-Test-Report"
+          path: all-reports/02-Selenium-Web
+        continue-on-error: true
+
+      - name: Download — Security Reports
+        uses: actions/download-artifact@v4
+        with:
+          name: "Security-Findings-Report"
+          path: all-reports/03-Security-Assessment
+        continue-on-error: true
+
+      - name: Download — Load Test Reports
+        uses: actions/download-artifact@v4
+        with:
+          name: "Load-Test-Reports"
+          path: all-reports/04-Load-Test
+        continue-on-error: true
+
+      - name: Create index file
+        run: |
+          cat > all-reports/README.txt << 'EOF'
+          NutriSmart AI — Complete Test Suite Reports
+          ============================================
+          Generated by GitHub Actions — Test Suite Workflow
+          EOF
+
+      - name: Upload — All Reports Bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: "ALL-Test-Reports-Bundle"
+          path: all-reports/
+          retention-days: 30
