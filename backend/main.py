@@ -837,7 +837,7 @@ async def login(request: Request, data: LoginModel, response: Response):
             key="access_token", value=token, httponly=True, samesite="lax", secure=COOKIE_SECURE,
             max_age=ACCESS_TOKEN_EXPIRE_MINUTES*60, path="/"
         )
-        return {"message": "Login successful", "name": user.get("name", "")}
+        return {"message": "Login successful", "name": user.get("name", ""), "access_token": token}
     except HTTPException:
         raise
     except Exception as e:
@@ -903,7 +903,7 @@ async def google_auth(data: GoogleAuthModel, response: Response):
             key="access_token", value=token, httponly=True, samesite="lax", secure=COOKIE_SECURE,
             max_age=ACCESS_TOKEN_EXPIRE_MINUTES*60, path="/"
         )
-        return {"message": "Login successful", "name": name}
+        return {"message": "Login successful", "name": name, "access_token": token}
     except ValueError as e:
         print(f"Google Token Verification Error: {e}")
         raise HTTPException(status_code=401, detail=f"Invalid Google token: {e}")
