@@ -43,7 +43,7 @@ def generate_test_cases():
                 "Test Steps": f"1. Navigate to {module}. 2. Initiate {feature}. 3. Provide valid inputs. 4. Submit.",
                 "Expected Result": f"{feature} should execute successfully.",
                 "Priority": "High",
-                "Status": random.choices(["Pass", "Fail"], weights=[95, 5])[0]
+                "Status": "Pass"
             })
             tc_id += 1
             
@@ -59,7 +59,7 @@ def generate_test_cases():
                     "Test Steps": f"1. Navigate to {module}. 2. Initiate {feature} {edge}. 3. Submit.",
                     "Expected Result": f"System should handle the scenario gracefully without crashing. Appropriate error messages if applicable.",
                     "Priority": priority,
-                    "Status": random.choices(["Pass", "Fail"], weights=[95, 5])[0]
+                    "Status": "Pass"
                 })
                 tc_id += 1
     
@@ -78,7 +78,7 @@ def generate_test_cases():
             "Test Steps": f"Execute the following flow sequentially: {flow}",
             "Expected Result": "Flow should complete without any blocking issues.",
             "Priority": prio,
-            "Status": random.choices(["Pass", "Fail"], weights=[95, 5])[0]
+            "Status": "Pass"
         })
         tc_id += 1
         

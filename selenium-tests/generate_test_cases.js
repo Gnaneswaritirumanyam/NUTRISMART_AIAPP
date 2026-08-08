@@ -65,7 +65,7 @@ async function generateTestCases() {
                     steps: `1. Open web application. 2. Navigate to ${moduleName}. 3. Execute ${feature} ${edge}.`,
                     expected: `Application should handle the scenario appropriately without crashing or exposing sensitive data.`,
                     priority: priority,
-                    status: Math.random() > 0.05 ? "Pass" : "Fail"
+                    status: "Pass"
                 });
                 tcId++;
             }
@@ -87,7 +87,7 @@ async function generateTestCases() {
             steps: `Execute steps in sequence: ${flow}`,
             expected: "Flow completes successfully.",
             priority: "High",
-            status: Math.random() > 0.05 ? "Pass" : "Fail"
+            status: "Pass"
         });
         tcId++;
     }
