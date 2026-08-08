@@ -1,4 +1,4 @@
-name: "Unified CI/CD Pipeline - Selenium, Appium, LoadTests"
+name: "NutriSmart AI - Test Cases: Selenium, Appium, LoadTests"
 
 on:
   push:
