@@ -61,7 +61,6 @@ budget_collection = auth_db["budget_plans"]
 fitness_collection = auth_db["fitness_details"]
 plans_collection = auth_db["plans"]
 notifications_collection = auth_db["notifications"]
-plans_collection = auth_db["plans"]
 feedback_col = auth_db["plan_feedback"]
 
 app = FastAPI(title="Recipe Suggestion + Auth API")
@@ -174,8 +173,10 @@ load_dotenv()
 MONGO_URI = os.getenv("MONGO_URI")
 RECAPTCHA_SECRET = os.getenv("RECAPTCHA_SECRET_KEY")
 SECRET_KEY = os.getenv("SECRET_KEY")
+if not SECRET_KEY:
+    raise ValueError("SECRET_KEY must be set in environment variables.")
 
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 720))
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30))
 ALGORITHM = "HS256"
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -185,7 +186,9 @@ STATIC_DIR = os.getenv("STATIC_DIR", os.path.join(PARENT_DIR, "frontend"))
 FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN", "http://localhost:3000")
 COOKIE_SECURE = os.getenv("COOKIE_SECURE", "false").lower() == "true"
 MAX_BCRYPT_LEN = 72  
-origins = ["capacitor://localhost", "http://localhost", "https://localhost", "http://10.0.2.2", "http://127.0.0.1:8000", "http://192.168.1.100:8000"] + os.getenv("FRONTEND_ORIGINS", "").split(",")
+origins = ["capacitor://localhost", "http://localhost", "https://localhost", "http://10.0.2.2", "http://127.0.0.1:8000", "http://192.168.1.100:8000"]
+if os.getenv("FRONTEND_ORIGINS"):
+    origins.extend(os.getenv("FRONTEND_ORIGINS").split(","))
 
 client = MongoClient(MONGO_URI)
 auth_db = client["myapp"]
@@ -201,9 +204,25 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "OPTIONS", "PUT", "PATCH", "DELETE"],
+    allow_headers=["Content-Type", "Authorization", "Accept"],
 )
+
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "SAMEORIGIN"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    return response
+
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 
 SYSTEM_PROMPT = (
@@ -295,12 +314,33 @@ BASE_DIR_PATH = Path(__file__).resolve().parent
 UPLOAD_FOLDER = str(BASE_DIR_PATH / "uploads")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
+import magic
+import uuid
+
+ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
+ALLOWED_MIMES = {"image/jpeg", "image/png", "image/webp"}
+
+def validate_image(file: UploadFile):
+    ext = os.path.splitext(file.filename)[1].lower()
+    if ext not in ALLOWED_EXTENSIONS:
+        raise HTTPException(status_code=400, detail=f"Unsupported file extension: {ext}")
+    
+    file.file.seek(0)
+    mime_type = magic.from_buffer(file.file.read(2048), mime=True)
+    file.file.seek(0)
+    
+    if mime_type not in ALLOWED_MIMES:
+        raise HTTPException(status_code=400, detail=f"Unsupported file type: {mime_type}")
+    return ext
+
 @app.post("/detect")
 async def detect_ingredients(file: UploadFile = File(...)):
+    ext = validate_image(file)
+    safe_filename = f"{uuid.uuid4().hex}{ext}"
 
     # ================= SAVE IMAGE =================
 
-    filepath = f"{UPLOAD_FOLDER}/{file.filename}"
+    filepath = f"{UPLOAD_FOLDER}/{safe_filename}"
 
     with open(filepath, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
@@ -470,7 +510,7 @@ async def ask_ai(request: Request):
     except Exception as e:
         return JSONResponse(
             status_code=500,
-            content={"text": str(e)}
+            content={"text": "Internal Server Error"}
         )
 
 class TranslateRequest(BaseModel):
@@ -524,6 +564,15 @@ def verify_token(token: str):
         return payload
     except JWTError:
         return None  
+
+async def get_current_user(request: Request):
+    token = get_token_from_request(request)
+    if not token:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    payload = verify_token(token)
+    if not payload or not payload.get("sub"):
+        raise HTTPException(status_code=401, detail="Invalid token")
+    return {"email": payload.get("sub")}
     
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
@@ -704,7 +753,7 @@ async def request_otp(data: SignupModel, background_tasks: BackgroundTasks):
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal Server Error")
 
 @app.post("/api/auth/signup/verify-otp")
 async def verify_otp(data: VerifyOTPModel, response: Response):
@@ -732,11 +781,11 @@ async def verify_otp(data: VerifyOTPModel, response: Response):
             max_age=ACCESS_TOKEN_EXPIRE_MINUTES*60, path="/"
         )
 
-        return {"success": True, "message": "Signup successful", "name": user.get("name", ""), "access_token": token}
+        return {"success": True, "message": "Signup successful", "name": user.get("name", "")}
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal Server Error")
 
 @app.post("/api/auth/signup/resend-otp")
 async def resend_otp(data: ResendOTPModel, background_tasks: BackgroundTasks):
@@ -764,11 +813,12 @@ async def resend_otp(data: ResendOTPModel, background_tasks: BackgroundTasks):
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal Server Error")
 
 # ---------------- LOGIN ----------------
 @app.post("/login")
-async def login(data: LoginModel, response: Response):
+@limiter.limit("5/minute")
+async def login(request: Request, data: LoginModel, response: Response):
     try:
         email = data.email.strip().lower()
         user = users_col.find_one({"email": email})
@@ -787,11 +837,11 @@ async def login(data: LoginModel, response: Response):
             key="access_token", value=token, httponly=True, samesite="lax", secure=COOKIE_SECURE,
             max_age=ACCESS_TOKEN_EXPIRE_MINUTES*60, path="/"
         )
-        return {"message": "Login successful", "name": user.get("name", ""), "access_token": token}
+        return {"message": "Login successful", "name": user.get("name", "")}
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal Server Error")
 
 # ---------------- GOOGLE AUTH ----------------
 @app.post("/api/auth/google")
@@ -853,14 +903,14 @@ async def google_auth(data: GoogleAuthModel, response: Response):
             key="access_token", value=token, httponly=True, samesite="lax", secure=COOKIE_SECURE,
             max_age=ACCESS_TOKEN_EXPIRE_MINUTES*60, path="/"
         )
-        return {"message": "Login successful", "name": name, "access_token": token}
+        return {"message": "Login successful", "name": name}
     except ValueError as e:
         print(f"Google Token Verification Error: {e}")
         raise HTTPException(status_code=401, detail=f"Invalid Google token: {e}")
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal Server Error")
 
 # ---------------- FORGOT/RESET PASSWORD ----------------
 @app.post("/api/auth/forgot-password")
@@ -890,7 +940,7 @@ async def forgot_password(req: ForgotPasswordRequest, background_tasks: Backgrou
         background_tasks.add_task(send_password_reset_otp, email, otp)
         return {"success": True, "message": msg}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal Server Error")
 
 @app.post("/api/auth/reset-password")
 async def reset_password(req: ResetPasswordRequest):
@@ -935,7 +985,7 @@ async def reset_password(req: ResetPasswordRequest):
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal Server Error")
 
 # ---------- SESSION CHECK ----------
 @app.get("/api/session")
@@ -1189,10 +1239,10 @@ reviews_col = auth_db["reviews"]
 
 # ---------------- REVIEW MODEL ----------------
 class Review(BaseModel):
-    name: str
+    name: str = Field(..., max_length=100)
     email: EmailStr
-    rating: int
-    review: str
+    rating: int = Field(..., ge=1, le=5)
+    review: str = Field(..., max_length=1000)
 
 @app.get("/reviews", response_class=HTMLResponse)
 async def reviews_page():
@@ -1216,10 +1266,9 @@ def get_reviews():
 
 # POST new review
 @app.post("/api/reviews")
-def post_review(r: Review):
-    if r.rating<1 or r.rating>5:
-        raise HTTPException(status_code=400, detail="Rating must be 1-5")
+def post_review(r: Review, current_user: dict = Depends(get_current_user)):
     data=r.dict()
+    data["email"] = current_user["email"]
     data["createdAt"]=datetime.utcnow()
     res=reviews_col.insert_one(data)
     return {"status":"success","id":str(res.inserted_id)}
@@ -1281,17 +1330,14 @@ async def get_user_profile(request: Request):
 
 # ---------------- UPLOAD PROFILE PIC ----------------
 @app.post("/api/upload_profile_pic")
-async def upload_profile_pic(request: Request, file: UploadFile = File(...)):
-    token = get_token_from_request(request)
-    payload = verify_token(token)
-    if not payload:
-        raise HTTPException(status_code=401, detail="Unauthorized")
-
-    email = payload.get("sub")
+async def upload_profile_pic(request: Request, file: UploadFile = File(...), current_user: dict = Depends(get_current_user)):
+    email = current_user["email"]
+    ext = validate_image(file)
+    safe_filename = f"{uuid.uuid4().hex}{ext}"
 
     upload_dir = os.path.join(STATIC_DIR, "uploads")
     os.makedirs(upload_dir, exist_ok=True)
-    file_path = os.path.join(upload_dir, f"{email}_{file.filename}")
+    file_path = os.path.join(upload_dir, f"{email}_{safe_filename}")
 
     with open(file_path, "wb") as f:
         f.write(await file.read())
@@ -1510,7 +1556,7 @@ async def generate_ai_plan(request: Request):
         return JSONResponse(content={"plan": json.loads(result_json)})
     except Exception as e:
         print(f"Error in /generate-ai-plan:", e)
-        return JSONResponse(status_code=500, content={"error": str(e)})
+        return JSONResponse(status_code=500, content={"error": "Internal Server Error"})
 @app.get("/generate-recipe")
 
 async def generate_recipe(meal:str):
@@ -1534,9 +1580,8 @@ async def generate_recipe(meal:str):
 
 
 @app.post("/delete-plan")
-async def delete_plan(data: dict):
-
-    email = data.get("email")
+async def delete_plan(data: dict, current_user: dict = Depends(get_current_user)):
+    email = current_user["email"]
 
     plans_collection.delete_one({
         "email": email
@@ -1557,7 +1602,7 @@ async def generate_weight_gain_plan(request: Request):
         return JSONResponse(content={"plan": json.loads(result_json)})
     except Exception as e:
         print(f"Error in /generate-weight-gain-plan:", e)
-        return JSONResponse(status_code=500, content={"error": str(e)})
+        return JSONResponse(status_code=500, content={"error": "Internal Server Error"})
 @app.post("/generate-budget-plan")
 async def generate_budget_plan(request: Request):
     try:
@@ -1569,7 +1614,7 @@ async def generate_budget_plan(request: Request):
         return JSONResponse(content={"success": True, "plan": json.loads(result_json)})
     except Exception as e:
         print(f"Error in /generate-budget-plan:", e)
-        return JSONResponse(status_code=500, content={"error": str(e)})
+        return JSONResponse(status_code=500, content={"error": "Internal Server Error"})
 @app.get("/history")
 async def get_history():
     data = list(history_col.find({}, {"_id": 0}))
@@ -1593,19 +1638,17 @@ async def generate_gym_plan(request: Request):
         return JSONResponse(content={"plan": json.loads(result_json)})
     except Exception as e:
         print(f"Error in /generate-gym-plan:", e)
-        return JSONResponse(status_code=500, content={"error": str(e)})
+        return JSONResponse(status_code=500, content={"error": "Internal Server Error"})
 @app.post("/delete-gym-plan")
-async def delete_gym_plan(data: dict):
-
-    email = data.get("email")
-
+async def delete_gym_plan(data: dict, current_user: dict = Depends(get_current_user)):
+    email = current_user["email"]
     fitness_collection.delete_one({"email": email})
 
     return {"success": True}
 
 @app.get("/get-gym-plan")
-async def get_gym_plan(email: str):
-
+async def get_gym_plan(current_user: dict = Depends(get_current_user)):
+    email = current_user["email"]
     plan = fitness_collection.find_one({"email": email})
 
     if plan:
@@ -1648,10 +1691,10 @@ async def generate_weekly_food_plan(request: Request):
         return JSONResponse(content={"success": True, "plan": json.loads(result_json)})
     except Exception as e:
         print(f"Error in /generate-weekly-food-plan:", e)
-        return JSONResponse(status_code=500, content={"error": str(e)})
+        return JSONResponse(status_code=500, content={"error": "Internal Server Error"})
 @app.get("/get-weekly-food-plan")
-async def get_weekly_food_plan(email: str):
-
+async def get_weekly_food_plan(current_user: dict = Depends(get_current_user)):
+    email = current_user["email"]
     try:
 
         saved_plan = plans_collection.find_one({
@@ -1704,7 +1747,8 @@ async def generate_weekly_recipe(request: Request):
         }}
 
 @app.get("/get-user-plan")
-async def get_user_plan(email: str):
+async def get_user_plan(current_user: dict = Depends(get_current_user)):
+    email = current_user["email"]
     plan = plans_collection.find_one({"email": email}, sort=[("_id", -1)])
     if plan and "plan" in plan:
         return {"success": True, "plan": plan["plan"]}
