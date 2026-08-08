@@ -135,9 +135,14 @@ jobs:
       - name: Run Selenium Live E2E Tests (Headless Chrome)
         id: selenium-live
         run: |
-          cd selenium-tests
-          # Tests target localhost:8000 which won't be running in CI.
-          # Tests are built with graceful skip when server is unavailable.
+          # Start the backend server in the background
+          pip install fastapi uvicorn pymongo passlib[bcrypt] python-jose[cryptography] python-dotenv pydantic httpx rapidfuzz networkx jinja2 requests
+          cd backend
+          nohup uvicorn main:app --host 127.0.0.1 --port 8000 > backend.log 2>&1 &
+          sleep 10
+          curl -s http://127.0.0.1:8000/login || echo "Backend did not start!"
+          cd ../selenium-tests
+          # Tests target localhost:8000
           APP_URL=http://127.0.0.1:8000/login HEADLESS=true npx mocha tests/**/*.js --timeout 30000 --reporter spec 2>&1 || true
         continue-on-error: true
 
@@ -269,10 +274,15 @@ jobs:
       - name: Run Locust Headless Load Test (100 VUs × 60s)
         id: locust-run
         run: |
-          cd load-tests
+          # Start the backend server in the background
+          pip install fastapi uvicorn pymongo passlib[bcrypt] python-jose[cryptography] python-dotenv pydantic httpx rapidfuzz networkx jinja2 requests
+          cd backend
+          nohup uvicorn main:app --host 127.0.0.1 --port 8000 > backend.log 2>&1 &
+          sleep 10
+          curl -s http://127.0.0.1:8000/login || echo "Backend did not start!"
+          cd ../load-tests
+          
           echo "Starting Locust headless load test..."
-          echo "Note: Backend at localhost:8000 may not be available in CI."
-          echo "Running test — will collect whatever responses are available."
           locust \
             -f locust/locustfile.py \
             --host=http://127.0.0.1:8000 \
