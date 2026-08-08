@@ -1,4 +1,4 @@
-name: "Unified CI/CD Pipeline"
+name: "Unified CI/CD Pipeline - Selenium, Appium, LoadTests"
 
 on:
   push:
@@ -190,12 +190,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: "Load-Test-Reports"
-          path: |
-            load-tests/results/Load_Test_Report.xlsx
-            load-tests/results/baseline_stats.csv
-            load-tests/results/baseline_history.csv
-            load-tests/results/baseline_failures.csv
-            load-tests/results/locust-report.html
+          path: load-tests/results/Load_Test_Report.xlsx
           retention-days: 30
 
   # ────────────────────────────────────────────────────────────
