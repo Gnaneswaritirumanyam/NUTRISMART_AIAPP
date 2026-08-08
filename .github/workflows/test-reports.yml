@@ -136,8 +136,11 @@ jobs:
         id: selenium-live
         run: |
           # Start the backend server in the background
-          pip install fastapi uvicorn pymongo passlib[bcrypt] python-jose[cryptography] python-dotenv pydantic httpx rapidfuzz networkx jinja2 requests
+          pip install fastapi uvicorn pymongo passlib[bcrypt] python-jose[cryptography] python-dotenv pydantic httpx rapidfuzz networkx jinja2 requests openai
           cd backend
+          echo "MONGO_URI=mongodb://localhost:27017" > .env
+          echo "SECRET_KEY=dummy_secret_key" >> .env
+          echo "GROQ_API_KEY=dummy_groq_key" >> .env
           nohup uvicorn main:app --host 127.0.0.1 --port 8000 > backend.log 2>&1 &
           sleep 10
           curl -s http://127.0.0.1:8000/login || echo "Backend did not start!"
@@ -275,8 +278,11 @@ jobs:
         id: locust-run
         run: |
           # Start the backend server in the background
-          pip install fastapi uvicorn pymongo passlib[bcrypt] python-jose[cryptography] python-dotenv pydantic httpx rapidfuzz networkx jinja2 requests
+          pip install fastapi uvicorn pymongo passlib[bcrypt] python-jose[cryptography] python-dotenv pydantic httpx rapidfuzz networkx jinja2 requests openai
           cd backend
+          echo "MONGO_URI=mongodb://localhost:27017" > .env
+          echo "SECRET_KEY=dummy_secret_key" >> .env
+          echo "GROQ_API_KEY=dummy_groq_key" >> .env
           nohup uvicorn main:app --host 127.0.0.1 --port 8000 > backend.log 2>&1 &
           sleep 10
           curl -s http://127.0.0.1:8000/login || echo "Backend did not start!"
