@@ -903,57 +903,15 @@ async function displayRecipes(
     ) {
 
 
-        /* ================= DEFAULT IMAGE ================= */
+                /* ================= AUTHENTIC RECIPE IMAGE ================= */
 
-        let imageUrl =
+        // Use the real recipe image from the dataset if available, otherwise fallback to default
+        let imageUrl = recipe.image && recipe.image.includes("http") ? 
+            recipe.image : 
             "https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg";
 
 
-        try {
-
-
-            const imageResponse =
-                await apiFetch(
-
-                    `/food-image?query=${encodeURIComponent(
-                        recipe.name
-                    )}`
-
-                );
-
-
-            const imageData =
-                await imageResponse.json();
-
-
-            if (
-
-                imageData.image
-
-            ) {
-
-                imageUrl =
-                    imageData.image;
-
-            }
-
-
-        }
-
-
-        catch (error) {
-
-
-            console.log(
-                "Image Fetch Error:",
-                error
-            );
-
-
-        }
-
-
-        /* ================= INGREDIENTS ================= */
+/* ================= INGREDIENTS ================= */
 
         let ingredientsHTML =
             "";

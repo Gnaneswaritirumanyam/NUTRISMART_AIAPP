@@ -1114,7 +1114,7 @@ function renderMeals(plan) {
                 <small>₹${day.dinner.cost}</small>
             </div>
 
-            <button class="recipe-btn" onclick='openRecipe(${JSON.stringify(day)})'>
+            <button class="recipe-btn" data-day="${encodeURIComponent(JSON.stringify(day))}" onclick="openRecipe(JSON.parse(decodeURIComponent(this.getAttribute('data-day'))))">
                 View Recipe
             </button>
         `;
@@ -1236,59 +1236,7 @@ async function loadHistory() {
 const modal = document.getElementById("recipeModal");
 const closeBtn = document.querySelector(".close");
 
-/* OPEN MODAL */
-function openRecipe(dayObj) {
 
-    document.getElementById("recipeTitle").innerText =
-        "Day " + dayObj.day + " Recipes";
-
-    const ingredientList = document.getElementById("ingredientList");
-    const stepList = document.getElementById("stepList");
-
-    ingredientList.innerHTML = "";
-    stepList.innerHTML = "";
-
-    const meals = [
-        { name: "Breakfast", data: dayObj.breakfast },
-        { name: "Lunch", data: dayObj.lunch },
-        { name: "Dinner", data: dayObj.dinner }
-    ];
-
-    meals.forEach(m => {
-
-        if (!m.data.recipe) return;
-
-        const h1 = document.createElement("h4");
-        h1.innerText = m.name + " - Ingredients";
-        ingredientList.appendChild(h1);
-
-        m.data.recipe.ingredients.forEach(i => {
-            const li = document.createElement("li");
-            li.innerText = i;
-            ingredientList.appendChild(li);
-        });
-
-        const h2 = document.createElement("h4");
-        h2.innerText = m.name + " - Steps";
-        stepList.appendChild(h2);
-
-        m.data.recipe.steps.forEach(s => {
-            const li = document.createElement("li");
-            li.innerText = "👉 " + s;
-            stepList.appendChild(li);
-        });
-    });
-
-    document.getElementById("cookTime").innerText =
-        dayObj.breakfast.recipe?.time || "";
-
-    document.getElementById("recipeCost").innerText =
-        dayObj.breakfast.cost + dayObj.lunch.cost + dayObj.dinner.cost;
-
-    /* OPEN MODAL */
-    modal.style.display = "flex";
-    document.body.style.overflow = "hidden";
-}
 
 /* CLOSE MODAL */
 function closeModal() {

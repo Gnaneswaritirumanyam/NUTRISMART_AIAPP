@@ -963,7 +963,7 @@ Dinner
     style="color:#ff6b00;"
 >
 
-📅 Your AI Weekly Food Plan
+🍽️ Your AI Weekly Food Plan
 
 </h2>
 
@@ -1302,8 +1302,16 @@ function loadWeek() {
 
         card.className = "day-card";
 
+        const dateIndex = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(day);
+        const today = new Date();
+        let diff = dateIndex - today.getDay();
+        if (diff < 0) diff += 7;
+        const targetDate = new Date();
+        targetDate.setDate(today.getDate() + diff);
+        const dateString = targetDate.getDate() + " " + targetDate.toLocaleString('default', { month: 'short' });
+
         card.innerHTML =
-            `📅 ${day}`;
+            `<div style="font-size: 13px; color: #555;">🗓️ ${dateString}</div><div style="font-weight: bold; margin-top: 5px;">${day}</div>`;
 
         card.addEventListener(
             "click",

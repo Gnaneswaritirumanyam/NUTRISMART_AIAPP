@@ -19,6 +19,7 @@ from sqlalchemy.ext.declarative import declarative_base
 import httpx
 import os
 import json
+import nutrition_engine
 import base64
 import shutil
 import cv2
@@ -457,7 +458,7 @@ async def ask_ai(request: Request):
                 {"role": "user", "content": prompt}
             ],
             temperature=0.7,
-            max_tokens=700
+            max_tokens=4000
         )
 
         text = response.choices[0].message.content
@@ -1487,435 +1488,51 @@ async def nutri_page():
     
 @app.post("/generate-health-recipes")
 async def generate_health_recipes(request: Request):
-
     try:
-
         data = await request.json()
-
-        name = data.get("name")
-        age = data.get("age")
-        gender = data.get("gender")
-        height = data.get("height")
-        weight = data.get("weight")
-        foodType = data.get("foodType")
-        condition = data.get("condition")
-
-        prompt = f"""
-Generate exactly 3 healthy recipes.
-
-User Details:
-Name: {name}
-Age: {age}
-Gender: {gender}
-Height: {height}
-Weight: {weight}
-Food Type: {foodType}
-Health Condition: {condition}
-
-Return ONLY valid JSON.
-
-Format:
-
-{{
-  "recipes":[
-    {{
-      "name":"Healthy Salad",
-      "ingredients":["Tomato","Onion"],
-      "process":["Cut vegetables","Mix properly"],
-      "nutrition":{{
-        "calories":"200 kcal",
-        "protein":"10g",
-        "carbs":"20g",
-        "fat":"5g"
-      }}
-    }}
-  ]
-}}
-"""
-
-        response = client.chat.completions.create(
-
-            model="llama-3.1-8b-instant",
-
-            messages=[
-
-                {
-                    "role":"system",
-                    "content":"Return only valid JSON."
-                },
-
-                {
-                    "role":"user",
-                    "content":prompt
-                }
-
-            ],
-
-            temperature=0.5,
-            max_tokens=4500,
-            response_format={"type": "json_object"}
-
-        )
-
-        ai_text = response.choices[0].message.content.strip()
-
-        print(ai_text)
-
-        ai_text = ai_text.replace("```json", "")
-        ai_text = ai_text.replace("```", "")
-        ai_text = ai_text.strip()
-
-        result = json.loads(ai_text)
-
-        recipes = result["recipes"]
-
-        health_collection.insert_one({
-            "name": name,
-            "age": age,
-            "gender": gender,
-            "height": height,
-            "weight": weight,
-            "foodType": foodType,
-            "condition": condition,
-            "recipes": recipes
-            })
-        return JSONResponse(content=recipes)
-
+        import nutrition_engine
+        import json
+        result_json = nutrition_engine.generate_health_plan(data)
+        result_dict = json.loads(result_json)
+        return result_dict.get("recipes", [])
     except Exception as e:
-
-        print("ERROR:", e)
-
-        return JSONResponse(content=[])
-    
-
-plans_collection = auth_db["weightloss_details"]
+        print(f"ERROR in /generate-health-recipes:", e)
+        return []
 
 @app.post("/generate-ai-plan")
 async def generate_ai_plan(request: Request):
-
     try:
-
+        import nutrition_engine
         data = await request.json()
-
-        email = data.get("email")
-
-        regenerate = data.get("regenerate", False)
-
-        name = data.get("name")
-        age = data.get("age")
-        gender = data.get("gender")
-        weight = data.get("weight")
-        targetWeight = data.get("targetWeight")
-        height = data.get("height")
-        duration = data.get("duration")
-        foodType = data.get("foodType")
-        
-        existing = plans_collection.find_one({
-            "email": email
-        })
-
-        # CHECK WHETHER USER DETAILS CHANGED
-        details_changed = False
-
-        if existing:
-
-            if(
-
-                existing.get("age") != age or
-                existing.get("gender") != gender or
-                existing.get("weight") != weight or
-                existing.get("targetWeight") != targetWeight or
-                existing.get("height") != height or
-                existing.get("duration") != duration or
-                existing.get("foodType") != foodType
-            ):
-
-                details_changed = True
-
-        # RETURN OLD PLAN ONLY IF
-        # DETAILS SAME + NOT REGENERATING
-        if existing and not regenerate and not details_changed:
-
-            return {
-                "plan": existing["plan"]
-            }
-
-        # DELETE OLD PLAN
-        plans_collection.delete_one({
-            "email": email
-        })
-
-        random_seed = random.randint(1,999999)
-
-        prompt = f"""
-
-Generate a COMPLETELY DIFFERENT professional healthy 7-day Indian weight loss meal plan.
-
-Random Seed: {random_seed}
-
-User Details:
-
-Name: {name}
-Age: {age}
-Gender: {gender}
-Current Weight: {weight}
-Target Weight: {targetWeight}
-Height: {height}
-Duration: {duration}
-Food Preference: {foodType}
-
-IMPORTANT:
-
-1. Return ONLY valid JSON
-2. No markdown
-3. No explanation
-4. Different meals every day
-5. Avoid repeating recipes
-6. Include Indian healthy foods
-7. Create variety in breakfast/lunch/dinner
-8. If Vegetarian:
-   - Only veg meals
-   - No chicken, egg, fish, meat
-
-9. If Non-Vegetarian:
-   - Include chicken, fish, eggs and protein meals
-   
-Format:
-
-{{
-  "Sunday": {{
-    "Morning": {{
-      "meal": "",
-      "calories": ""
-    }},
-    "Afternoon": {{
-      "meal": "",
-      "calories": ""
-    }},
-    "Evening": {{
-      "meal": "",
-      "calories": ""
-    }},
-    "Night": {{
-      "meal": "",
-      "calories": ""
-    }}
-  }}
-}}
-
-"""
-
-        response = client.chat.completions.create(
-
-            model="llama-3.1-8b-instant",
-
-            messages=[
-
-                {
-                    "role":"system",
-                    "content":"Return only valid JSON."
-                },
-
-                {
-                    "role":"user",
-                    "content":prompt
-                }
-
-            ],
-
-            temperature=1.2,
-            max_tokens=4500,
-            response_format={"type": "json_object"}
-        )
-
-        ai_text = response.choices[0].message.content.strip()
-
-        ai_text = ai_text.replace("```json", "")
-        ai_text = ai_text.replace("```", "")
-        ai_text = ai_text.strip()
-
-        plan = json.loads(ai_text)
-
-        # SAVE USER DETAILS + PLAN
-        plans_collection.insert_one({
-
-            "email": email,
-
-            "name": name,
-            "age": age,
-            "gender": gender,
-            "weight": weight,
-            "targetWeight": targetWeight,
-            "height": height,
-            "duration": duration,
-            "foodType": foodType,
-            
-            "plan": plan
-        })
-
-        return {
-            "plan": plan
-        }
-
+        print(f"[/generate-ai-plan] Received request data:", data)
+        result_json = nutrition_engine.generate_weight_loss_plan(data)
+        import json
+        return JSONResponse(content={"plan": json.loads(result_json)})
     except Exception as e:
-
-        print("AI PLAN ERROR:", e)
-
-        return {
-            "plan": None
-        }
-# ADD THIS FUNCTION ABOVE generate_recipe ROUTE
-
-def get_recipe_image(meal):
-
-    url = "https://api.pexels.com/v1/search"
-
-    headers = {
-
-        "Authorization": PEXELS_API
-
-    }
-
-    params = {
-
-        "query": meal,
-        "per_page": 1
-
-    }
-
-    response = requests.get(
-
-        url,
-        headers=headers,
-        params=params
-
-    )
-
-    data = response.json()
-
-    print(data)
-
-    if "photos" in data and len(data["photos"]) > 0:
-
-        return data["photos"][0]["src"]["large"]
-
-    return "https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg"
-
+        print(f"Error in /generate-ai-plan:", e)
+        return JSONResponse(status_code=500, content={"error": str(e)})
 @app.get("/generate-recipe")
 
 async def generate_recipe(meal:str):
-
-    prompt = f"""
-
-Generate healthy recipe details for:
-
-{meal}
-
-STRICT RULES:
-
-1. Return ONLY valid JSON
-2. No markdown
-3. No explanation
-4. ingredients MUST be array
-5. process MUST be array
-
-JSON FORMAT:
-
-{{
-    "name":"Recipe Name",
-
-    "ingredients":[
-        "ingredient 1",
-        "ingredient 2",
-        "ingredient 3"
-    ],
-
-    "process":[
-        "step 1",
-        "step 2",
-        "step 3"
-    ],
-
-    "nutrition":{{
-        "calories":"250 kcal",
-        "protein":"15g",
-        "carbs":"30g",
-        "fat":"8g"
-    }}
-}}
-
-"""
-
     try:
-
-        response = client.chat.completions.create(
-
-            model="llama-3.1-8b-instant",
-
-            messages=[
-
-                {
-                    "role":"system",
-                    "content":"Return only valid JSON"
-                },
-
-                {
-                    "role":"user",
-                    "content":prompt
-                }
-
-            ],
-
-            temperature=0.4
-
-        )
-
-        text = response.choices[0].message.content.strip()
-
-        print(text)
-
-        text = text.replace("```json", "")
-        text = text.replace("```", "")
-        text = text.strip()
-
-        recipe = json.loads(text)
-
-        # PEXELS IMAGE
-        recipe["image"] = get_recipe_image(meal)
-
+        import nutrition_engine
+        recipe = nutrition_engine.get_recipe_details(meal)
         return recipe
-
     except Exception as e:
-
         print("RECIPE ERROR:", e)
-
         return {
-
             "name": meal,
-
-            "ingredients":[
-                "Healthy ingredient 1",
-                "Healthy ingredient 2"
-            ],
-
-            "process":[
-                "Cook properly",
-                "Serve healthy"
-            ],
-
+            "ingredients":["Generic Ingredient"],
+            "process":["Generic Step"],
             "nutrition":{
-
                 "calories":"250 kcal",
                 "protein":"15g",
                 "carbs":"30g",
                 "fat":"8g"
-
-            },
-
-            "image":"https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg"
-
+            }
         }
-        
+
+
 @app.post("/delete-plan")
 async def delete_plan(data: dict):
 
@@ -1931,395 +1548,28 @@ async def delete_plan(data: dict):
 
 @app.post("/generate-weight-gain-plan")
 async def generate_weight_gain_plan(request: Request):
-
     try:
-
+        import nutrition_engine
         data = await request.json()
-
-        email = data.get("email")
-
-        regenerate = data.get("regenerate", False)
-
-        name = data.get("name")
-        age = data.get("age")
-        gender = data.get("gender")
-        weight = data.get("weight")
-        targetWeight = data.get("targetWeight")
-        height = data.get("height")
-        duration = data.get("duration")
-        foodType = data.get("foodType")
-        
-        existing = plans_collection.find_one({
-            "email": email,
-            "type": "weight_gain"
-        })
-
-        # CHECK IF USER DETAILS CHANGED
-        details_changed = False
-
-        if existing:
-
-            if(
-
-                existing.get("age") != age or
-                existing.get("gender") != gender or
-                existing.get("weight") != weight or
-                existing.get("targetWeight") != targetWeight or
-                existing.get("height") != height or
-                existing.get("duration") != duration or
-                existing.get("foodType") != foodType
-
-            ):
-
-                details_changed = True
-
-        # RETURN OLD PLAN ONLY IF
-        # DETAILS SAME + NOT REGENERATING
-        if existing and not regenerate and not details_changed:
-
-            return {
-                "plan": existing["plan"]
-            }
-
-        # DELETE OLD PLAN
-        plans_collection.delete_one({
-            "email": email,
-            "type": "weight_gain"
-        })
-
-        # RANDOM SEED FOR DIFFERENT PLANS
-        random_seed = random.randint(1,999999)
-
-        prompt = f"""
-
-Generate a COMPLETELY DIFFERENT professional healthy 7-day WEIGHT GAIN meal plan.
-
-Random Seed: {random_seed}
-
-User Details:
-
-Name: {name}
-Age: {age}
-Gender: {gender}
-Current Weight: {weight}
-Target Weight: {targetWeight}
-Height: {height}
-Duration: {duration}
-Food Preference: {foodType} 
-
-IMPORTANT:
-
-1. Return ONLY valid JSON
-2. No markdown
-3. No explanation
-4. High protein meals
-5. Muscle building foods
-6. Healthy calorie surplus
-7. Indian healthy foods
-8. Different meals every day
-9. Include protein-rich breakfast/lunch/dinner/snacks
-10. Avoid repeating recipes
-11. If Vegetarian:
-    - Only vegetarian muscle-building meals
-
-12. If Non-Vegetarian:
-    - Include chicken, fish, eggs, lean meat
-    
-Format:
-
-{{
-  "Sunday": {{
-    "Morning": {{
-      "meal": "",
-      "calories": ""
-    }},
-    "Afternoon": {{
-      "meal": "",
-      "calories": ""
-    }},
-    "Evening": {{
-      "meal": "",
-      "calories": ""
-    }},
-    "Night": {{
-      "meal": "",
-      "calories": ""
-    }}
-  }}
-}}
-
-"""
-
-        response = client.chat.completions.create(
-
-            model="llama-3.1-8b-instant",
-
-            messages=[
-
-                {
-                    "role":"system",
-                    "content":"Return only valid JSON."
-                },
-
-                {
-                    "role":"user",
-                    "content":prompt
-                }
-
-            ],
-
-            temperature=1.2,
-            max_tokens=4500,
-            response_format={"type": "json_object"}
-        )
-
-        ai_text = response.choices[0].message.content.strip()
-
-        ai_text = ai_text.replace("```json", "")
-        ai_text = ai_text.replace("```", "")
-        ai_text = ai_text.strip()
-
-        plan = json.loads(ai_text)
-
-        # SAVE NEW PLAN + USER DETAILS
-        plans_collection.insert_one({
-
-            "email": email,
-            "type": "weight_gain",
-
-            "name": name,
-            "age": age,
-            "gender": gender,
-            "weight": weight,
-            "targetWeight": targetWeight,
-            "height": height,
-            "duration": duration,
-            "foodType": foodType,
-            
-            "plan": plan
-
-        })
-
-        return {
-            "plan": plan
-        }
-
+        print(f"[/generate-weight-gain-plan] Received request data:", data)
+        result_json = nutrition_engine.generate_weight_gain_plan(data)
+        import json
+        return JSONResponse(content={"plan": json.loads(result_json)})
     except Exception as e:
-
-        print("WEIGHT GAIN PLAN ERROR:", e)
-
-        return {
-            "plan": None
-        }
-
+        print(f"Error in /generate-weight-gain-plan:", e)
+        return JSONResponse(status_code=500, content={"error": str(e)})
 @app.post("/generate-budget-plan")
 async def generate_budget_plan(request: Request):
-
     try:
+        import nutrition_engine
         data = await request.json()
-
-        name = data.get("name")
-        age = data.get("age")
-        gender = data.get("gender")
-        weight = data.get("weight")
-        height = data.get("height")
-        budget = int(data.get("budget"))   # ✅ TOTAL BUDGET
-        days = int(data.get("days"))
-        foodType = data.get("foodType")
-        goal = data.get("goal")
-        condition = data.get("condition")
-        activity = data.get("activity")
-        allergy = data.get("allergy")  # ✅ FIXED (was missing usage)
-
-        random_seed = random.randint(1, 999999)
-
-        # ================= PROMPT =================
-        prompt = f"""
-You are a professional Indian nutrition AI.
-
-Generate a {days}-day healthy Indian meal plan.
-
-Random Seed: {random_seed}
-
-USER DETAILS:
-Name: {name}
-Age: {age}
-Gender: {gender}
-Weight: {weight}
-Height: {height}
-TOTAL BUDGET: ₹{budget}
-DAYS: {days}
-Food Type: {foodType}
-Goal: {goal}
-Health Condition: {condition}
-Activity Level: {activity}
-Allergies: {allergy}
-
-STRICT RULES (MANDATORY - MUST FOLLOW):
-
-1. Only Indian foods
-2. Strict food type compliance ({foodType})
-3. Avoid allergy ingredients completely
-
-4. TOTAL COST CONTROL (VERY IMPORTANT):
-   - Total cost for ALL days combined MUST EXACTLY MATCH budget (₹{budget}) ± 5%
-   - DO NOT UNDERSPEND OR OVERSPEND
-
-5. DAILY BUDGET RULE:
-   - Per day budget = ₹{budget} / {days}
-   - Each day MUST use full per-day budget ± 5%
-
-6. MEAL SPLIT RULE:
-   - Breakfast = 30% of daily budget
-   - Lunch = 40% of daily budget
-   - Dinner = 30% of daily budget
-7. Include Breakfast, Lunch, Dinner
-8. Each meal must include:
-   - meal name
-   - calories
-   - cost (must follow budget split strictly)
-   - protein
-   - carbs
-   - fat
-   - recipe (ingredients, steps, time)
-
-9. Recipe steps must be:
-   Step 1: ...
-   Step 2: ...
-   Step 3: ...
-   Step 4: ...
-   Step 5: ...
-
-10. Ingredients must be real Indian kitchen items
-
-11. Return ONLY valid JSON
-12. No markdown, no explanation
-FORMAT:
-{{
-  "days": [
-    {{
-      "day": 1,
-      "breakfast": {{
-        "meal": "",
-        "calories": 0,
-        "cost": 0,
-        "protein": "",
-        "carbs": "",
-        "fat": "",
-        "recipe": {{
-          "ingredients": [],
-          "steps": [],
-          "time": ""
-        }}
-      }},
-      "lunch": {{
-        "meal": "",
-        "calories": 0,
-        "cost": 0,
-        "protein": "",
-        "carbs": "",
-        "fat": ""
-      }},
-      "dinner": {{
-        "meal": "",
-        "calories": 0,
-        "cost": 0,
-        "protein": "",
-        "carbs": "",
-        "fat": ""
-      }},
-      "totalCalories": 0,
-      "totalCost": 0
-    }}
-  ]
-}}
-"""
-
-        # ================= GROQ CALL =================
-        response = client.chat.completions.create(
-            model="llama-3.1-8b-instant",
-            messages=[
-                {"role": "system", "content": "Return ONLY valid JSON. No markdown."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.7,
-            max_tokens=4500,
-            response_format={"type": "json_object"}
-        )
-
-        ai_text = response.choices[0].message.content
-
-        # ================= CLEAN JSON =================
-        ai_text = ai_text.replace("```json", "").replace("```", "").strip()
-
-        plan = json.loads(ai_text)
-
-        # ================= VERIFY BUDGET =================
-        total_cost = sum(
-            d["breakfast"]["cost"] +
-            d["lunch"]["cost"] +
-            d["dinner"]["cost"]
-            for d in plan["days"]
-        )
-
-        if total_cost > budget:
-            plan["warning"] = "Budget exceeded by AI output"
-
-        # ================= SAVE HISTORY =================
-        history_col.insert_one({
-            "type": "budget_plan",
-            "name": name,
-            "age": age,
-            "gender": gender,
-            "weight": weight,
-            "height": height,
-            "budget": budget,
-            "days": days,
-            "foodType": foodType,
-            "goal": goal,
-            "condition": condition,
-            "activity": activity,
-            "allergy": allergy,
-            "plan": plan
-        })
-        history_col.insert_one({
-    "type": "budget_plan",
-    "name": name,
-
-    "input": {
-        "budget": budget,
-        "days": days,
-        "per_day_budget": round(budget / days, 2)
-    },
-
-    "plan": plan,
-
-    "meta": {
-        "created_at": datetime.utcnow()
-    }
-})
-        # ================= SAVE HEALTH DATA =================
-        health_collection.insert_one({
-            "name": name,
-            "weight": weight,
-            "height": height,
-            "goal": goal,
-            "condition": condition
-        })
-
-        return {
-            "success": True,
-            "plan": plan
-        }
-
+        print(f"[/generate-budget-plan] Received request data:", data)
+        result_json = nutrition_engine.generate_budget_plan(data)
+        import json
+        return JSONResponse(content={"success": True, "plan": json.loads(result_json)})
     except Exception as e:
-        return JSONResponse(
-            status_code=500,
-            content={
-                "success": False,
-                "error": str(e)
-            }
-        )
+        print(f"Error in /generate-budget-plan:", e)
+        return JSONResponse(status_code=500, content={"error": str(e)})
 @app.get("/history")
 async def get_history():
     data = list(history_col.find({}, {"_id": 0}))
@@ -2334,198 +1584,16 @@ async def get_history_by_days(days: int):
 
 @app.post("/generate-gym-plan")
 async def generate_gym_plan(request: Request):
-
     try:
+        import nutrition_engine
         data = await request.json()
-
-        email = data.get("email")
-        regenerate = data.get("regenerate", False)
-
-        # ================= USER DATA =================
-        name = data.get("name")
-        age = data.get("age")
-        gender = data.get("gender")
-
-        height = data.get("height")
-        weight = data.get("weight")
-        targetWeight = data.get("targetWeight")
-        bodyFat = data.get("bodyFat")
-        activityLevel = data.get("activityLevel")
-
-        goal = data.get("goal")
-        experience = data.get("experience")
-
-        workoutType = data.get("workoutType")
-        workoutDays = data.get("workoutDays")
-        workoutTime = data.get("workoutTime")
-
-        healthIssues = data.get("healthIssues")
-        foodType = data.get("foodType")
-
-        # ================= DB CHECK =================
-        existing = fitness_collection.find_one({"email": email})
-
-        details_changed = False
-
-        if existing:
-            if (
-                existing.get("weight") != weight or
-                existing.get("targetWeight") != targetWeight or
-                existing.get("goal") != goal or
-                existing.get("experience") != experience or
-                existing.get("workoutDays") != workoutDays or
-                existing.get("foodType") != foodType
-            ):
-                details_changed = True
-
-        if existing and not regenerate and not details_changed:
-            return {"plan": existing["plan"]}
-
-        fitness_collection.delete_one({"email": email})
-
-        random_seed = random.randint(1, 999999)
-
-        # ================= IMPROVED AI PROMPT =================
-        prompt = f"""
-You are a certified FITNESS COACH + SPORTS SCIENCE AI.
-
-Generate a HIGHLY STRUCTURED 7-DAY GYM PLAN.
-
-Random Seed: {random_seed}
-
-USER PROFILE:
-Name: {name}
-Age: {age}
-Gender: {gender}
-
-Body:
-Height: {height} cm
-Weight: {weight} kg
-Target Weight: {targetWeight} kg
-Body Fat: {bodyFat}%
-Activity Level: {activityLevel}
-
-Fitness Goal: {goal}
-Experience Level: {experience}
-
-Workout Setup:
-Type: {workoutType}
-Days per week: {workoutDays}
-Preferred time: {workoutTime}
-
-Health Issues: {healthIssues}
-Diet Type: {foodType}
-
-STRICT RULES:
-- Return ONLY valid JSON
-- NO markdown
-- NO explanations
-- MUST be realistic gym training plan
-- MUST adjust intensity based on experience
-- MUST avoid injury risks
-- MUST match goal exactly
-- MUST include diet aligned with goal
-
-GOAL RULES:
-- Weight Gain → calorie surplus + heavy lifting
-- Fat Loss → calorie deficit + cardio focus
-- Recomposition → balanced training
-- Strength → low reps heavy lifts
-- Endurance → high reps + cardio
-
-OUTPUT FORMAT:
-
-{{
-  "Monday": {{
-    "workout": [
-      {{
-        "exercise": "Bench Press",
-        "sets": "4",
-        "reps": "8-10"
-      }}
-    ],
-    "cardio": "10 min treadmill",
-    "diet": {{
-      "breakfast": "Oats + banana + milk",
-      "lunch": "Rice + chicken + vegetables",
-      "dinner": "Egg curry + roti",
-      "snacks": "nuts + whey protein"
-    }},
-    "notes": "Focus on controlled movement"
-  }},
-
-  "Tuesday": {{
-    "workout": [],
-    "cardio": "",
-    "diet": {{
-      "breakfast": "",
-      "lunch": "",
-      "dinner": "",
-      "snacks": ""
-    }},
-    "notes": ""
-  }}
-}}
-
-IMPORTANT:
-- Indian food only
-- Gym-safe exercises only
-- No unrealistic diets
-"""
-
-        # ================= AI CALL =================
-        response = client.chat.completions.create(
-            model="llama-3.1-8b-instant",
-            messages=[
-                {"role": "system", "content": "You are a strict JSON generator. Output only valid JSON."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.9,
-            max_tokens=4500,
-            response_format={"type": "json_object"}
-        )
-
-        text = response.choices[0].message.content.strip()
-
-        # cleanup
-        text = text.replace("```json", "").replace("```", "").strip()
-
-        plan = json.loads(text)
-
-        # ================= SAVE =================
-        fitness_collection.insert_one({
-            "email": email,
-
-            "name": name,
-            "age": age,
-            "gender": gender,
-
-            "height": height,
-            "weight": weight,
-            "targetWeight": targetWeight,
-            "bodyFat": bodyFat,
-            "activityLevel": activityLevel,
-
-            "goal": goal,
-            "experience": experience,
-
-            "workoutType": workoutType,
-            "workoutDays": workoutDays,
-            "workoutTime": workoutTime,
-
-            "healthIssues": healthIssues,
-            "foodType": foodType,
-
-            "plan": plan
-        })
-
-        return {"plan": plan}
-
+        print(f"[/generate-gym-plan] Received request data:", data)
+        result_json = nutrition_engine.generate_gym_plan(data)
+        import json
+        return JSONResponse(content={"plan": json.loads(result_json)})
     except Exception as e:
-        print("GYM PLAN ERROR:", e)
-        return {"plan": None}
-  
-
+        print(f"Error in /generate-gym-plan:", e)
+        return JSONResponse(status_code=500, content={"error": str(e)})
 @app.post("/delete-gym-plan")
 async def delete_gym_plan(data: dict):
 
@@ -2548,318 +1616,39 @@ async def get_gym_plan(email: str):
 
 @app.post("/generate-gym-recipe")
 async def generate_gym_recipe(request: Request):
-
     try:
         data = await request.json()
-
-        meal = data.get("meal")
-        email = data.get("email")
-        planContext = data.get("planContext")
-
-        prompt = f"""
-You are a professional gym nutrition chef AI.
-
-Create a HIGH PROTEIN HEALTHY INDIAN RECIPE for gym users.
-
-USER CONTEXT:
-{planContext}
-
-FOOD ITEM:
-{meal}
-
-RULES:
-1. Must match gym goal (fat loss / muscle gain / strength)
-2. Must be Indian food only
-3. Must be healthy (low oil, high protein)
-4. Give clear step-by-step cooking process
-5. Return ONLY valid JSON (no markdown, no text)
-
-FORMAT:
-
-{{
-  "name": "recipe name",
-  "ingredients": [
-    "ingredient 1 with quantity",
-    "ingredient 2 with quantity",
-    "ingredient 3 with quantity"
-  ],
-  "steps": [
-    "Step 1 detailed instruction",
-    "Step 2 detailed instruction",
-    "Step 3 detailed instruction"
-  ],
-  "nutrition": {{
-    "calories": "value in kcal",
-    "protein": "value in g",
-    "carbs": "value in g",
-    "fat": "value in g"
-  }}
-}}
-"""
-
-        response = client.chat.completions.create(
-            model="llama-3.1-8b-instant",
-            messages=[
-                {"role": "system", "content": "You must return ONLY valid JSON. No explanation."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.6
-        )
-
-        text = response.choices[0].message.content.strip()
-
-        # remove markdown safely
-        text = text.replace("```json", "").replace("```", "").strip()
-
-        recipe = json.loads(text)
-
-        # ---------------- CLEAN VALIDATION ----------------
-        recipe_clean = {
-            "name": recipe.get("name", meal),
-            "ingredients": recipe.get("ingredients", []),
-            "steps": recipe.get("steps", []),
-            "nutrition": {
-                "calories": recipe.get("nutrition", {}).get("calories", "0 kcal"),
-                "protein": recipe.get("nutrition", {}).get("protein", "0g"),
-                "carbs": recipe.get("nutrition", {}).get("carbs", "0g"),
-                "fat": recipe.get("nutrition", {}).get("fat", "0g")
-            }
-        }
-
-        return recipe_clean
-
+        meal = data.get("meal", "")
+        import nutrition_engine
+        recipe = nutrition_engine.get_recipe_details(meal)
+        return recipe
     except Exception as e:
-        print("GYM RECIPE ERROR:", e)
-
-        return {
-            "name": meal,
-            "ingredients": [
-                "Basic protein source (paneer / eggs / dal)",
-                "Whole spices (turmeric, cumin)",
-                "Healthy oil (1 tsp)"
-            ],
-            "steps": [
-                "Heat pan and add oil",
-                "Cook ingredients with spices",
-                "Serve hot with balanced portion"
-            ],
+        print(f"ERROR in /generate-gym-recipe:", e)
+        return {"recipe": {
+            "name": meal if 'meal' in locals() else "Unknown",
+            "ingredients": ["Generic Ingredient"],
+            "process": ["Generic Step"],
+            "steps": ["Generic Step"],
             "nutrition": {
-                "calories": "300 kcal",
-                "protein": "20g",
-                "carbs": "35g",
-                "fat": "10g"
+                "calories": "250 kcal",
+                "protein": "15g",
+                "carbs": "30g",
+                "fat": "8g"
             }
-        }
-    
+        }}
+
 @app.post("/generate-weekly-food-plan")
 async def generate_weekly_food_plan(request: Request):
-
     try:
+        import nutrition_engine
         data = await request.json()
-
-        email = data.get("email")
-
-        if not email:
-            return {
-                "success": False,
-                "plan": None,
-                "error": "Email is required"
-            }
-
-        name = data.get("name")
-        age = data.get("age")
-        gender = data.get("gender")
-        height = data.get("height")
-        weight = data.get("weight")
-        targetWeight = data.get("targetWeight")
-        activityLevel = data.get("activityLevel")
-        goal = data.get("goal")
-        foodType = data.get("foodType")
-        healthIssues = data.get("healthIssues")
-        regenerate = data.get("regenerate", False)
-
-        # Find existing plan
-        existing = plans_collection.find_one({
-            "email": email,
-            "plan_type": "weekly_food"
-        })
-
-        details_changed = False
-
-        if existing:
-
-            old_data = existing.get("user_data", {})
-
-            if (
-                str(old_data.get("weight")) != str(weight)
-                or str(old_data.get("targetWeight")) != str(targetWeight)
-                or old_data.get("goal") != goal
-                or old_data.get("foodType") != foodType
-                or old_data.get("activityLevel") != activityLevel
-                or old_data.get("healthIssues") != healthIssues
-            ):
-                details_changed = True
-
-        # Return saved plan
-        if existing and not regenerate and not details_changed:
-
-            return {
-                "success": True,
-                "plan": existing["plan"]
-            }
-
-        random_seed = random.randint(1, 999999)
-
-        prompt = f"""
-You are a professional Indian nutritionist.
-
-Generate a healthy 7-day Indian weekly food plan.
-
-Random Seed: {random_seed}
-
-USER DETAILS:
-Name: {name}
-Age: {age}
-Gender: {gender}
-Height: {height} cm
-Current Weight: {weight} kg
-Target Weight: {targetWeight} kg
-Activity Level: {activityLevel}
-Health Goal: {goal}
-Food Type: {foodType}
-Health Issues: {healthIssues}
-
-RULES:
-- Return ONLY valid JSON.
-- No markdown.
-- No explanations.
-- Exactly 7 days.
-- Use Indian home-cooked food.
-- Respect the selected food type.
-- Consider the user's health goal.
-- Include breakfast, lunch, eveningSnack and dinner.
-- Include approximate calories.
-- Avoid junk food.
-- Give realistic portions.
-
-JSON FORMAT:
-{{
-    "Monday": {{
-        "breakfast": "Oats with banana and milk - 350 kcal",
-        "lunch": "Rice, dal and vegetables - 550 kcal",
-        "eveningSnack": "Fruit and roasted chana - 200 kcal",
-        "dinner": "Chapati with paneer curry - 450 kcal"
-    }},
-    "Tuesday": {{
-        "breakfast": "",
-        "lunch": "",
-        "eveningSnack": "",
-        "dinner": ""
-    }},
-    "Wednesday": {{
-        "breakfast": "",
-        "lunch": "",
-        "eveningSnack": "",
-        "dinner": ""
-    }},
-    "Thursday": {{
-        "breakfast": "",
-        "lunch": "",
-        "eveningSnack": "",
-        "dinner": ""
-    }},
-    "Friday": {{
-        "breakfast": "",
-        "lunch": "",
-        "eveningSnack": "",
-        "dinner": ""
-    }},
-    "Saturday": {{
-        "breakfast": "",
-        "lunch": "",
-        "eveningSnack": "",
-        "dinner": ""
-    }},
-    "Sunday": {{
-        "breakfast": "",
-        "lunch": "",
-        "eveningSnack": "",
-        "dinner": ""
-    }}
-}}
-"""
-
-        response = client.chat.completions.create(
-            model="llama-3.1-8b-instant",
-            messages=[
-                {
-                    "role": "system",
-                    "content": "Return only valid JSON."
-                },
-                {
-                    "role": "user",
-                    "content": prompt
-                }
-            ],
-            temperature=0.8,
-            max_tokens=4500,
-            response_format={"type": "json_object"}
-        )
-
-        text = response.choices[0].message.content.strip()
-
-        if text.startswith("```"):
-            text = text.replace("```json", "")
-            text = text.replace("```", "")
-            text = text.strip()
-
-        plan = json.loads(text)
-
-        # Delete old plan
-        plans_collection.delete_one({
-            "email": email,
-            "plan_type": "weekly_food"
-        })
-
-        # Save new plan
-        plans_collection.insert_one({
-
-            "email": email,
-
-            "plan_type": "weekly_food",
-
-            "user_data": {
-                "name": name,
-                "age": age,
-                "gender": gender,
-                "height": height,
-                "weight": weight,
-                "targetWeight": targetWeight,
-                "activityLevel": activityLevel,
-                "goal": goal,
-                "foodType": foodType,
-                "healthIssues": healthIssues
-            },
-
-            "plan": plan
-
-        })
-
-        return {
-            "success": True,
-            "plan": plan
-        }
-
+        print(f"[/generate-weekly-food-plan] Received request data:", data)
+        result_json = nutrition_engine.generate_weekly_food_plan(data)
+        import json
+        return JSONResponse(content={"success": True, "plan": json.loads(result_json)})
     except Exception as e:
-
-        print("WEEKLY FOOD PLAN ERROR:", e)
-
-        return {
-            "success": False,
-            "plan": None,
-            "error": str(e)
-        }
-        
+        print(f"Error in /generate-weekly-food-plan:", e)
+        return JSONResponse(status_code=500, content={"error": str(e)})
 @app.get("/get-weekly-food-plan")
 async def get_weekly_food_plan(email: str):
 
@@ -2893,128 +1682,26 @@ async def get_weekly_food_plan(email: str):
         }
 @app.post("/generate-weekly-recipe")
 async def generate_weekly_recipe(request: Request):
-
     try:
-
         data = await request.json()
-
-        meal = data.get("meal")
-        email = data.get("email")
-        goal = data.get("goal")
-        foodType = data.get("foodType")
-
-        prompt = f"""
-You are a professional Indian nutritionist and chef.
-
-Create a healthy Indian recipe.
-
-Food Item:
-{meal}
-
-Food Type:
-{foodType}
-
-Health Goal:
-{goal}
-
-RULES:
-- Return ONLY valid JSON.
-- No markdown.
-- No explanations.
-- Use Indian cooking.
-- Give quantities.
-- Give clear cooking steps.
-
-FORMAT:
-{{
-    "name": "Recipe Name",
-    "ingredients": [
-        "Ingredient with quantity"
-    ],
-    "steps": [
-        "Step 1",
-        "Step 2",
-        "Step 3"
-    ],
-    "nutrition": {{
-        "calories": "400 kcal",
-        "protein": "20 g",
-        "carbs": "50 g",
-        "fat": "12 g"
-    }}
-}}
-"""
-
-        response = client.chat.completions.create(
-
-            model="llama-3.1-8b-instant",
-
-            messages=[
-
-                {
-                    "role": "system",
-                    "content": "Return only valid JSON."
-                },
-
-                {
-                    "role": "user",
-                    "content": prompt
-                }
-
-            ],
-
-            temperature=0.6
-
-        )
-
-        text = response.choices[0].message.content.strip()
-
-        text = text.replace("```json", "")
-        text = text.replace("```", "")
-        text = text.strip()
-
-        recipe = json.loads(text)
-
-        return {
-            "success": True,
-            "recipe": recipe
-        }
-
+        meal = data.get("meal", "")
+        import nutrition_engine
+        recipe = nutrition_engine.get_recipe_details(meal)
+        return {"recipe": recipe}
     except Exception as e:
-
-        print("RECIPE ERROR:", e)
-
-        return {
-
-            "success": False,
-
-            "recipe": {
-
-                "name": meal or "Recipe",
-
-                "ingredients": [
-                    "Ingredients unavailable"
-                ],
-
-                "steps": [
-                    "Recipe generation failed. Please try again."
-                ],
-
-                "nutrition": {
-
-                    "calories": "Not available",
-                    "protein": "Not available",
-                    "carbs": "Not available",
-                    "fat": "Not available"
-
-                }
-
-            },
-
-            "error": str(e)
-
-        }
-
+        print(f"ERROR in /generate-weekly-recipe:", e)
+        return {"recipe": {
+            "name": meal if 'meal' in locals() else "Unknown",
+            "ingredients": ["Generic Ingredient"],
+            "process": ["Generic Step"],
+            "steps": ["Generic Step"],
+            "nutrition": {
+                "calories": "250 kcal",
+                "protein": "15g",
+                "carbs": "30g",
+                "fat": "8g"
+            }
+        }}
 
 @app.get("/get-user-plan")
 async def get_user_plan(email: str):
@@ -3034,7 +1721,6 @@ async def serve_html_pages(page: str):
         return HTMLResponse(content=f.read())
 
 
-app.mount("/", StaticFiles(directory=STATIC_DIR, html=True), name="root_static")
 
 
 
@@ -3148,3 +1834,5 @@ async def save_plan_feedback(feedback: PlanFeedback, request: Request):
         upsert=True
     )
     return {'message': 'Feedback saved'}
+
+app.mount("/", StaticFiles(directory=STATIC_DIR, html=True), name="root_static")
