@@ -16,11 +16,35 @@ class NotificationManager {
     async setupListeners() {
         if (!this.isCapacitor) return;
         
+        try {
+            await this.LocalNotifications.registerActionTypes({
+                types: [
+                    {
+                        id: 'FEEDBACK_ACTIONS',
+                        actions: [
+                            { id: 'yes', title: '✅ Ate it' },
+                            { id: 'no', title: '❌ Not Completed' },
+                            { id: 'skipped', title: '⏭️ Skipped' }
+                        ]
+                    }
+                ]
+            });
+        } catch(e) {
+            console.warn("Could not register action types", e);
+        }
+        
         await this.LocalNotifications.addListener('localNotificationActionPerformed', (notificationAction) => {
             const data = notificationAction.notification.extra;
+            const actionId = notificationAction.actionId;
+            
             if (data && data.type === 'feedback') {
                 if (window.feedbackManager) {
-                    window.feedbackManager.openFeedbackDialog(data.feedbackId, data);
+                    if (['yes', 'no', 'skipped'].includes(actionId)) {
+                        window.feedbackManager.currentFeedbackData = data;
+                        window.feedbackManager.submitFeedback(actionId);
+                    } else {
+                        window.feedbackManager.openFeedbackDialog(data.feedbackId, data);
+                    }
                 }
             }
         });
@@ -110,6 +134,7 @@ class NotificationManager {
                     title: `How was your ${mealType}?`,
                     body: `Did you complete the ${mealType} from your ${plan.planName}?`,
                     schedule: { at: feedbackDate },
+                    actionTypeId: 'FEEDBACK_ACTIONS',
                     extra: {
                         type: 'feedback',
                         feedbackId: feedbackId,
