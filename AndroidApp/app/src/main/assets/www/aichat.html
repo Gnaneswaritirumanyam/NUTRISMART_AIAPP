@@ -1,0 +1,476 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>CookingHub AI</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: #fffaf5;
+    }
+
+    /* ===================================================
+       KEY FIX: position:fixed inset:0 - fills EXACTLY the
+       screen in Android WebView without any height chain.
+       This is the most reliable method for Android WebView.
+    =================================================== */
+    .app-wrapper {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      flex-direction: column;
+      /* Food pattern background */
+      background-color: #fffaf5;
+      background-image: url('./images/aichat.png');
+      background-repeat: repeat;
+      background-size: 340px auto;
+      background-position: center top;
+    }
+
+    /* ===== CHAT MESSAGES - grows to fill space ===== */
+    .chat-box {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      /* top: 70px padding clears the hamburger button */
+      padding: 72px 16px 14px 16px;
+      /* Semi-transparent so food pattern shows through */
+      background: rgba(255, 250, 245, 0.78);
+    }
+
+    .message {
+      margin-bottom: 14px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .user-msg { align-items: flex-end; }
+
+    .user-msg .bubble {
+      background: #ff7b00;
+      color: white;
+      align-self: flex-end;
+    }
+
+    .ai-msg .bubble {
+      background: #fff3e6;
+      color: #333;
+      border: 1px solid #ffb84d;
+    }
+
+    .bubble {
+      padding: 10px 14px;
+      border-radius: 14px;
+      max-width: 80%;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      font-size: 14px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    }
+
+    /* ===== FOOTER - flex-shrink:0 keeps it at bottom ===== */
+    .footer-input {
+      flex-shrink: 0;
+      padding: 10px 14px;
+      border-top: 2px solid #ffb84d;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      background: #fffaf5;
+    }
+
+    .footer-input input {
+      flex: 1;
+      border-radius: 24px;
+      padding: 11px 18px;
+      border: 1.5px solid #ffb84d;
+      font-size: 14px;
+      outline: none;
+      background: #fff;
+      color: #333;
+    }
+
+    .footer-input input:focus {
+      border-color: #ff7b00;
+    }
+
+    .footer-input button {
+      background: #ff7b00;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 44px;
+      height: 44px;
+      flex-shrink: 0;
+      font-size: 17px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .footer-input button:active { background: #e65c00; }
+
+    /* ===== HAMBURGER BUTTON - fixed position, below status bar ===== */
+    .menu-btn {
+      position: fixed;
+      /* KEY: top:16px gives breathing room below system status bar */
+      top: 16px;
+      left: 14px;
+      background: #ff7b00;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 9px 12px;
+      font-size: 18px;
+      line-height: 1;
+      cursor: pointer;
+      z-index: 400;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+    }
+
+    /* ===== OVERLAY (dim background behind sidebar) ===== */
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.38);
+      z-index: 100;
+    }
+    .overlay.show { display: block; }
+
+    /* ===== SIDEBAR (slides in from left) ===== */
+    .sidebar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      height: 100%;
+      width: 88%;
+      max-width: 360px;
+      background: #fff3e6;
+      border-right: 2px solid #ffb84d;
+      box-shadow: 4px 0 16px rgba(0, 0, 0, 0.22);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      transform: translateX(-110%);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 300;
+      padding: 0 20px 30px 20px;
+    }
+
+    .sidebar.open { transform: translateX(0); }
+
+    /* Close (X) row inside sidebar */
+    .sidebar-top-row {
+      display: flex;
+      justify-content: flex-end;
+      padding: 14px 0 6px 0;
+      position: sticky;
+      top: 0;
+      background: #fff3e6;
+      z-index: 1;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 24px;
+      color: #ff7b00;
+      cursor: pointer;
+      padding: 4px 8px;
+      line-height: 1;
+    }
+
+    /* Logo section */
+    .logo-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 18px;
+      margin-top: 4px;
+    }
+
+    .logo-img {
+      height: 72px;
+      width: auto;
+    }
+
+    .logo-title {
+      margin-top: 6px;
+      font-size: 1.4rem;
+      font-weight: bold;
+      color: #ff5722;
+      text-align: center;
+    }
+
+    .sidebar-desc {
+      font-size: 13px;
+      color: #555;
+      margin-bottom: 12px;
+      line-height: 1.45;
+    }
+
+    .sidebar textarea {
+      width: 100%;
+      height: 85px;
+      padding: 10px;
+      font-size: 13px;
+      border-radius: 8px;
+      border: 1px solid #ffb84d;
+      resize: none;
+      background: #fff;
+      font-family: "Segoe UI", Arial, sans-serif;
+    }
+
+    .filters { margin-top: 10px; }
+
+    .filters label {
+      display: block;
+      margin-top: 10px;
+      font-size: 13px;
+      color: #333;
+    }
+
+    .filters select,
+    .filters input {
+      margin-left: 6px;
+      padding: 5px 7px;
+      border-radius: 6px;
+      border: 1px solid #ffb84d;
+      font-size: 13px;
+      background: #fff;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 10px 4px;
+      border: none;
+      background: #ff7b00;
+      color: #fff;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 12px;
+      text-align: center;
+    }
+
+    .btn:active { background: #e65c00; }
+
+    .sample-section {
+      margin-top: 18px;
+    }
+
+    .sample-section strong {
+      font-size: 13px;
+      color: #333;
+    }
+
+    .sample {
+      display: inline;
+      cursor: pointer;
+      color: #e65c00;
+      font-size: 13px;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HAMBURGER BUTTON - fixed, always on top -->
+  <button class="menu-btn" id="menuBtn">☰</button>
+
+  <!-- OVERLAY - tap to close sidebar -->
+  <div class="overlay" id="overlay"></div>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="sidebar">
+
+    <!-- Close button row at top of sidebar -->
+    <div class="sidebar-top-row">
+      <button class="close-btn" id="closeBtn">✕</button>
+    </div>
+
+    <!-- Logo -->
+    <div class="logo-container">
+      <img src="./images/logo.png" alt="NutriSmart Logo" class="logo-img">
+      <span class="logo-title">NutriSmart</span>
+    </div>
+
+    <p class="sidebar-desc">Ask for recipes, substitutions, or step-by-step help. You can also add filters like diet, time, or difficulty.</p>
+
+    <textarea id="prompt" placeholder="e.g. Show me recipes with chicken and mushrooms"></textarea>
+
+    <div class="filters">
+      <label>Diet:
+        <select id="diet">
+          <option value="">Any</option>
+          <option value="vegetarian">Vegetarian</option>
+          <option value="vegan">Vegan</option>
+          <option value="gluten-free">Gluten-free</option>
+          <option value="keto">Keto</option>
+        </select>
+      </label>
+      <label>Max Time (mins):
+        <input id="time" type="number" min="0" placeholder="e.g. 20" style="width:80px" />
+      </label>
+      <label>Difficulty:
+        <select id="difficulty">
+          <option value="">Any</option>
+          <option value="easy">Easy</option>
+          <option value="medium">Medium</option>
+          <option value="hard">Hard</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn" id="askBtn">Ask 🍲</button>
+      <button class="btn" id="surpriseBtn">Surprise Me 🎁</button>
+      <button class="btn" id="clearBtn">Clear ✨</button>
+    </div>
+
+    <div class="sample-section">
+      <strong>Sample prompts:</strong><br>
+      <span class="sample" data-text="Show me recipes with chicken and mushrooms">🍗 Chicken &amp; Mushrooms</span> |
+      <span class="sample" data-text="Give me low-carb Indian breakfast options">🥞 Low-carb Indian breakfast</span> |
+      <span class="sample" data-text="Find vegetarian dinner ideas">🥗 Vegetarian dinner</span> |
+      <span class="sample" data-text="Suggest desserts under 15 minutes">🍰 Quick desserts</span> |
+      <span class="sample" data-text="What can I cook with rice, eggs, and soy sauce">🍳 Fried rice ideas</span> |
+      <span class="sample" data-text="Find me a high-protein smoothie recipe">🥤 Protein smoothie</span>
+    </div>
+  </div>
+
+  <!-- MAIN CHAT (position:fixed fills screen reliably in Android WebView) -->
+  <div class="app-wrapper">
+
+    <!-- Scrollable chat messages -->
+    <div id="chatBox" class="chat-box">
+      <div class="message ai-msg">
+        <div class="bubble">👋 Hi! I'm your AI Chef. Ask me about recipes, ingredients, or cooking help!</div>
+      </div>
+    </div>
+
+    <!-- Footer - stays at bottom via flex-shrink:0 -->
+    <div class="footer-input">
+      <input type="text" id="quickInput" placeholder="Type your message..." autocomplete="off" />
+      <button id="sendBtn">➤</button>
+    </div>
+  </div>
+
+  <script src="./js/api_config.js"></script>
+  <script type="module">
+    const API = "/api/recipe";
+    const chatBox    = document.getElementById("chatBox");
+    const promptEl   = document.getElementById("prompt");
+    const quickInput = document.getElementById("quickInput");
+    const sidebar    = document.getElementById("sidebar");
+    const overlay    = document.getElementById("overlay");
+
+    /* ===== SIDEBAR TOGGLE ===== */
+    function openSidebar()  { sidebar.classList.add("open");    overlay.classList.add("show"); }
+    function closeSidebar() { sidebar.classList.remove("open"); overlay.classList.remove("show"); }
+
+    document.getElementById("menuBtn").addEventListener("click", () =>
+      sidebar.classList.contains("open") ? closeSidebar() : openSidebar()
+    );
+    document.getElementById("closeBtn").addEventListener("click", closeSidebar);
+    overlay.addEventListener("click", closeSidebar);
+
+    /* ===== ADD MESSAGE ===== */
+    function addMessage(html, sender = "ai") {
+      const div = document.createElement("div");
+      div.className = `message ${sender}-msg`;
+      div.innerHTML = `<div class="bubble">${html}</div>`;
+      chatBox.appendChild(div);
+      chatBox.scrollTop = chatBox.scrollHeight;
+      return div;
+    }
+
+    /* ===== ASK AI ===== */
+    async function askAI(prompt) {
+      const filters = {
+        diet:       document.getElementById("diet").value,
+        time:       document.getElementById("time").value,
+        difficulty: document.getElementById("difficulty").value,
+      };
+
+      closeSidebar();
+      addMessage(prompt, "user");
+
+      const aiDiv = addMessage("Thinking...", "ai");
+
+      try {
+        const res = await apiFetch(API, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt, filters })
+        });
+
+        const text = await res.text();
+        let data;
+        try { data = JSON.parse(text); }
+        catch (e) { data = { text: "⚠️ Server error. Please try again." }; }
+
+        aiDiv.querySelector(".bubble").innerHTML = data.text || "⚠️ No response.";
+      } catch (err) {
+        aiDiv.querySelector(".bubble").innerText = "❌ Error: " + err.message;
+      }
+
+      setTimeout(() => chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: "smooth" }), 100);
+    }
+
+    /* ===== EVENTS ===== */
+    document.getElementById("askBtn").addEventListener("click", () => {
+      const p = promptEl.value.trim();
+      if (p) askAI(p);
+    });
+
+    document.getElementById("sendBtn").addEventListener("click", () => {
+      const p = quickInput.value.trim();
+      if (!p) return;
+      askAI(p);
+      quickInput.value = "";
+    });
+
+    quickInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") document.getElementById("sendBtn").click();
+    });
+
+    document.getElementById("clearBtn").addEventListener("click", () => {
+      chatBox.innerHTML = `<div class="message ai-msg"><div class="bubble">👋 Hi! I'm your AI Chef. Ask me about recipes, ingredients, or cooking help!</div></div>`;
+      closeSidebar();
+    });
+
+    document.getElementById("surpriseBtn").addEventListener("click", () => {
+      const ideas = [
+        "Show me chicken recipes under 20 minutes",
+        "Give vegetarian dinner ideas",
+        "Suggest healthy breakfast recipes",
+        "Quick desserts in 10 minutes",
+        "High protein smoothie recipe",
+        "Indian street food recipe"
+      ];
+      askAI(ideas[Math.floor(Math.random() * ideas.length)]);
+    });
+
+    document.querySelectorAll(".sample").forEach(s =>
+      s.addEventListener("click", () => { promptEl.value = s.dataset.text; })
+    );
+  </script>
+</body>
+</html>

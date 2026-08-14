@@ -1,0 +1,1030 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>CookingHub Intro</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+    <style>
+        /* =========================
+RESET
+========================= */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #fff8f5;
+            overflow-x: hidden;
+        }
+
+        /* =========================
+SECTION
+========================= */
+
+        .intro-section {
+            height: 100vh;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 7%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* First section perfectly center */
+
+        .hero-section {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* =========================
+GRID
+========================= */
+
+        .intro-container {
+            width: 100%;
+            max-width: 1400px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            align-items: center;
+            gap: 60px;
+        }
+
+        /* Hero section centered */
+
+        .hero-container {
+            align-items: center;
+        }
+
+        /* =========================
+TEXT
+========================= */
+
+        .intro-text {
+            opacity: 0;
+            transition: 1s ease;
+        }
+
+        /* LEFT ANIMATION */
+
+        .left-text {
+            transform: translateX(-120px);
+        }
+
+        /* RIGHT ANIMATION */
+
+        .right-text {
+            transform: translateX(120px);
+        }
+
+        /* ACTIVE */
+
+        .intro-section.active .intro-text {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        /* REMOVE ANIMATION WHEN OUTSIDE */
+
+        .intro-section:not(.active) .left-text {
+            transform: translateX(-120px);
+            opacity: 0;
+        }
+
+        .intro-section:not(.active) .right-text {
+            transform: translateX(120px);
+            opacity: 0;
+        }
+
+        /* =========================
+HEADINGS
+========================= */
+
+        .intro-text h1 {
+            font-size: 4.5rem;
+            font-weight: 800;
+            color: #ff5722;
+            line-height: 1.2;
+            margin-bottom: 25px;
+        }
+
+        .intro-text h2 {
+            font-size: 3.2rem;
+            font-weight: 700;
+            color: #ff5722;
+            line-height: 1.3;
+            margin-bottom: 25px;
+        }
+
+        .intro-text p {
+            font-size: 1.12rem;
+            color: #555;
+            line-height: 1.9;
+            max-width: 620px;
+        }
+
+        /* =========================
+BUTTON
+========================= */
+
+        .main-btn {
+            margin-top: 35px;
+            background: #ff5722;
+            border: none;
+            color: white;
+            padding: 16px 42px;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: 0.3s;
+            box-shadow: 0 12px 30px rgba(255, 77, 90, 0.35);
+        }
+
+        .main-btn:hover {
+            transform: translateY(-5px);
+            background: #ff5722;
+        }
+
+        /* =========================
+IMAGE CONTAINER
+========================= */
+
+
+        .intro-image {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            min-height: auto;
+            padding: 60px 40px;
+            opacity: 0;
+            transition: 1s ease;
+        }
+
+        /* IMAGE LEFT ENTRY */
+
+        .left-image {
+            transform: translateX(-120px);
+        }
+
+        /* IMAGE RIGHT ENTRY */
+
+        .right-image {
+            transform: translateX(120px);
+        }
+
+        /* ACTIVE */
+
+        .intro-section.active .intro-image {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        /* REMOVE ACTIVE */
+
+        .intro-section:not(.active) .left-image {
+            transform: translateX(-120px);
+            opacity: 0;
+        }
+
+        .intro-section:not(.active) .right-image {
+            transform: translateX(120px);
+            opacity: 0;
+        }
+
+        /* =========================
+MAIN IMAGE
+========================= */
+
+        .main-img {
+            width: 100%;
+            max-width: 430px;
+
+            /* IMPORTANT */
+            height: auto;
+
+            /* SHOW FULL IMAGE */
+            object-fit: cover;
+
+            /* REMOVE EXTRA WHITE CUTTING */
+            background: transparent;
+            padding: 0;
+
+            border-radius: 32px;
+
+            box-shadow:
+                0 20px 50px rgba(0, 0, 0, 0.12),
+                0 8px 20px rgba(0, 0, 0, 0.08);
+
+            transition: 0.45s ease;
+
+            position: relative;
+            z-index: 2;
+
+            display: block;
+        }
+
+        /* HOVER */
+
+        .main-img:hover {
+            transform: translateY(-8px) scale(1.02);
+        }
+
+        /* =========================
+POP CARDS
+========================= */
+
+        .pop-card {
+            position: absolute;
+            background: #ff5722;
+            backdrop-filter: blur(10px);
+            padding: 14px;
+            border-radius: 20px;
+            width: 135px;
+            text-align: center;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.10);
+            animation: float 3s ease-in-out infinite;
+            z-index: 5;
+            transition: 0.3s ease;
+        }
+
+        .pop-card:hover {
+            transform: translateY(-6px);
+        }
+
+        .pop-card img {
+            width: 48px;
+            margin-bottom: 8px;
+        }
+
+        .pop-card p {
+            margin: 0;
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: #fcf8f8;
+        }
+
+        /* =========================
+BETTER CARD POSITIONS
+========================= */
+
+        .card1 {
+            top: 40px;
+            left: -10px;
+        }
+
+        .card2 {
+            bottom: 40px;
+            left: -15px;
+        }
+
+        .card3 {
+            top: 50px;
+            right: -10px;
+        }
+
+        .card4 {
+            bottom: 40px;
+            right: -15px;
+        }
+
+        /* =========================
+MOBILE
+========================= */
+
+        @media(max-width:992px) {
+
+            .intro-image {
+                min-height: auto;
+                padding: 20px;
+            }
+
+            .main-img {
+                max-width: 320px;
+                height: 420px;
+            }
+
+            .pop-card {
+                width: 105px;
+                padding: 10px;
+            }
+
+            .pop-card img {
+                width: 38px;
+            }
+
+            .card1 {
+                top: 20px;
+                left: 5px;
+            }
+
+            .card2 {
+                bottom: 20px;
+                left: 5px;
+            }
+
+            .card3 {
+                top: 20px;
+                right: 5px;
+            }
+
+            .card4 {
+                bottom: 20px;
+                right: 5px;
+            }
+        }
+
+        /* =========================
+FLOAT
+========================= */
+
+        @keyframes float {
+
+            0% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+
+            100% {
+                transform: translateY(0px);
+            }
+        }
+
+        /* =========================
+BACKGROUND SHAPE
+========================= */
+
+        .intro-section::before {
+            content: '';
+            position: absolute;
+            width: 450px;
+            height: 450px;
+            background: rgba(255, 77, 90, 0.08);
+            border-radius: 50%;
+            filter: blur(40px);
+            z-index: -1;
+        }
+
+        /* =========================
+ALT BG
+========================= */
+
+        .alt-bg {
+            background: #ffffff;
+        }
+
+        /* =========================
+MOBILE
+========================= */
+
+        @media(max-width:992px) {
+
+            .intro-section {
+                height: auto;
+                padding: 90px 8%;
+            }
+
+            .intro-container {
+                grid-template-columns: 1fr;
+                text-align: center;
+                gap: 50px;
+            }
+
+            .reverse-mobile {
+                display: flex;
+                flex-direction: column-reverse;
+            }
+
+            .intro-text h1 {
+                font-size: 2.8rem;
+            }
+
+            .intro-text h2 {
+                font-size: 2.2rem;
+            }
+
+            .intro-text p {
+                margin: auto;
+                font-size: 1rem;
+            }
+
+            .main-img {
+                max-width: 320px;
+                height: 420px;
+            }
+
+            .pop-card {
+                width: 120px;
+                padding: 12px;
+            }
+
+            .pop-card img {
+                width: 42px;
+            }
+
+            .card1 {
+                top: 10%;
+                left: 10px;
+            }
+
+            .card2 {
+                bottom: 12%;
+                left: 10px;
+            }
+
+            .card3 {
+                top: 10%;
+                right: 10px;
+            }
+
+            .card4 {
+                bottom: 12%;
+                right: 10px;
+            }
+        }
+
+        /* =========================
+SCAN BUTTON
+========================= */
+
+        .scan-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 14px;
+            overflow: hidden;
+        }
+
+        /* ARROW */
+
+        .scan-btn .arrow {
+            font-size: 1.3rem;
+            transition: 0.35s ease;
+        }
+
+        /* HOVER EFFECT */
+
+        .scan-btn:hover .arrow {
+            transform: translateX(10px);
+        }
+
+
+        .hero-right-image {
+            flex: 1;
+            height: 100vh;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            overflow: visible;
+        }
+
+        .hero-image-box {
+            width: 100%;
+            height: 100%;
+        }
+
+        .hero-img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            object-position: center;
+            display: block;
+        }
+
+        .scan-image .card1 {
+            top: 50px;
+            left: -1px;
+        }
+
+        .scan-image .card4 {
+            bottom: -5px;
+            right: -20px;
+        }
+
+        /* ===== ABOUT SECTION ===== */
+
+        #about-section {
+            background: black;
+            overflow: hidden;
+            color: white;
+            position: relative;
+        }
+
+        /* ===== Content ===== */
+
+        .about-content {
+            position: relative;
+            z-index: 2;
+            padding-left: 80px;
+            padding-right: 80px;
+        }
+
+        /* ===== Owner Image ===== */
+
+        .owner-img {
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+            border: 3px solid #fff;
+        }
+
+        /* ===== Glow Heading ===== */
+
+        .glowing-text {
+            color: #fff;
+            text-shadow:
+                0 0 10px rgba(255, 255, 255, 0.7),
+                0 0 20px rgba(255, 255, 255, 0.5);
+
+            animation: glow 2s infinite alternate;
+        }
+
+        @keyframes glow {
+
+            from {
+                text-shadow:
+                    0 0 10px rgba(255, 255, 255, 0.6);
+            }
+
+            to {
+                text-shadow:
+                    0 0 20px #fff,
+                    0 0 30px #f8f9fa;
+            }
+        }
+
+        /* ===== Chef Images ===== */
+
+        .chef-image {
+            position: absolute;
+            top: 30px;
+            width: 200px;
+            height: auto;
+            opacity: 0.25;
+            z-index: 1;
+
+            filter: brightness(1.6);
+
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .chef-image.left {
+            left: 0;
+        }
+
+        .chef-image.right {
+            right: 0;
+        }
+
+        /* ===== Float Animation ===== */
+
+        @keyframes float {
+
+            0% {
+                transform: translateY(-20px);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+
+            100% {
+                transform: translateY(-20px);
+            }
+        }
+
+        /* ===== Social Icons ===== */
+
+        .social-icons a {
+            color: white;
+            text-decoration: none;
+            transition: 0.3s ease;
+        }
+
+        .social-icons a:hover {
+            transform: scale(1.2);
+            color: #ff5722;
+        }
+
+        /* ===== Fade Animation ===== */
+
+        .fade-in-on-scroll {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: all 0.8s ease-in-out;
+        }
+
+        .fade-in-on-scroll.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ===== Tablet ===== */
+
+        @media(max-width:992px) {
+
+            .about-content {
+                padding-left: 40px;
+                padding-right: 40px;
+            }
+
+            .chef-image {
+                width: 160px;
+                opacity: 0.3;
+            }
+        }
+
+        /* ===== Mobile ===== */
+
+        @media(max-width:768px) {
+
+            .about-content {
+                padding: 0 20px;
+                text-align: center;
+            }
+
+            .about-content .row {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .chef-image {
+                width: 120px;
+                opacity: 0.25;
+                top: 10px;
+            }
+
+            .chef-image.left {
+                left: -10px;
+            }
+
+            .chef-image.right {
+                right: -10px;
+            }
+        }
+
+        /* ===== Small Mobile ===== */
+
+        @media(max-width:480px) {
+
+            .about-content {
+                padding: 0 15px;
+            }
+
+            .chef-image {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- =========================
+SECTION 1
+========================= -->
+
+    <section class="intro-section hero-section active">
+
+        <div class="intro-container hero-container">
+
+            <!-- LEFT TEXT -->
+
+            <div class="intro-text left-text">
+
+                <h1>
+                    Welcome To <br> NutriSmart
+                </h1>
+
+                <p>
+                    Your AI-powered smart cooking companion designed to help you discover recipes,
+                    scan ingredients, manage food budgets, and enjoy healthy personalized meals effortlessly.
+                </p>
+
+                <button class="main-btn" onclick="goToDashboard()">
+                    <span>Explore</span>
+
+                    <span class="arrow">
+                        →
+                    </span>
+
+                </button>
+
+            </div>
+
+            <!-- RIGHT ICON DESIGN -->
+            <!-- RIGHT IMAGE -->
+
+            <div class="intro-image right-image">
+
+                <div class="hero-image-box">
+
+                    <img src="./images/heart.jpg" alt="Cooking Image" class="hero-img">
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- =========================
+SECTION 2
+========================= -->
+
+    <section class="intro-section alt-bg">
+
+        <div class="intro-container">
+
+            <!-- LEFT IMAGE -->
+
+            <div class="intro-image left-image">
+
+                <img src="./images/one.jpeg" class="main-img">
+
+                <div class="pop-card card1">
+                    <img src="https://cdn-icons-png.flaticon.com/512/3081/3081986.png">
+                    <p>Ingredients</p>
+                </div>
+
+                <div class="pop-card card4">
+                    <img src="https://cdn-icons-png.flaticon.com/512/706/706195.png">
+                    <p>Recipe Match</p>
+                </div>
+
+            </div>
+
+            <!-- RIGHT TEXT -->
+
+            <div class="intro-text right-text">
+
+                <h2>
+                    Ingredient Based <br> Recipe Recommendations
+                </h2>
+
+                <p>
+                    Enter ingredients available in your kitchen and NutriSmart instantly
+                    suggests delicious recipes with smart AI-powered recommendations.
+                </p>
+
+                <button class="main-btn" onclick="goToDashboard()">
+                    <span>Search Ingredients</span>
+
+                    <span class="arrow">
+                        →
+                    </span>
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- =========================
+SECTION 3
+========================= -->
+
+    <!-- =========================
+SECTION 4
+========================= -->
+
+    <section class="intro-section alt-bg">
+
+        <div class="intro-container">
+
+            <!-- LEFT IMAGE -->
+
+            <div class="intro-image left-image">
+
+                <img src="./images/three.jpeg" class="main-img">
+
+                <div class="pop-card card2">
+                    <img src="https://cdn-icons-png.flaticon.com/512/3135/3135706.png">
+                    <p>Budget Meals</p>
+                </div>
+
+                <div class="pop-card card3">
+                    <img src="https://cdn-icons-png.flaticon.com/512/1046/1046857.png">
+                    <p>Healthy Diet</p>
+                </div>
+
+            </div>
+
+            <!-- RIGHT TEXT -->
+
+            <div class="intro-text right-text">
+
+                <h2>
+                    Budget & Health Based <br> Recommendations
+                </h2>
+
+                <p>
+                    NutriSmart provides affordable and healthy personalized meal suggestions
+                    based on your budget and nutrition preferences.
+                </p>
+
+                <button class="main-btn" onclick="goToBudget()">
+                    <span>Nutrition Planner</span>
+
+                    <span class="arrow">
+                        →
+                    </span>
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </section>
+    <!-- ===== ABOUT SECTION ===== -->
+    <section id="about-section" class="container-fluid py-5 position-relative">
+
+        <!-- Decorative Chef Images -->
+        <img src="./images/boy.jpg" alt="Chef Left" class="chef-image left fade-in-on-scroll">
+        <img src="./images/girl.jpg" alt="Chef Right" class="chef-image right fade-in-on-scroll">
+
+        <!-- About Content -->
+        <div class="container position-relative fade-in-on-scroll about-content">
+            <div class="row g-4 align-items-start">
+
+                <!-- Owner Profile -->
+                <div class="col-lg-4 text-center">
+                    <img src="./images/owner.jpg" alt="Owner" class="rounded-circle mb-3 shadow-lg owner-img">
+
+                    <h4 class="fw-bold glowing-text">
+                        Gnaneswari Tirumanyam
+                    </h4>
+
+                    <p class="mb-1">📧 gnaneswari@example.com</p>
+                    <p class="mb-1">📞 +91 98765 43210</p>
+                    <p class="mb-3">📍 Tirupathi, India</p>
+
+                    <div class="d-flex justify-content-center gap-4 fs-4 social-icons">
+                        <a href="#">🅾</a>
+                        <a href="#">ⓕ</a>
+                        <a href="#">▶️</a>
+                    </div>
+                </div>
+
+                <!-- About Website -->
+                <div class="col-lg-4">
+                    <h4 class="fw-bold mb-3 text-center text-lg-start glowing-text">
+                        🍴 About This Website
+                    </h4>
+
+                    <p class="text-light">
+                        Welcome to <strong>NutriSmart</strong> — your all-in-one destination
+                        for discovering, sharing, and creating recipes that connect people
+                        through taste.
+                    </p>
+
+                    <p class="text-light">
+                        Designed with simplicity, speed, and inspiration in mind — NutriSmart
+                        helps you search, save, and explore recipes effortlessly.
+                    </p>
+                </div>
+
+                <!-- Motivation -->
+                <div class="col-lg-4">
+                    <h4 class="fw-bold mb-3 text-center text-lg-start glowing-text">
+                        💡 Motivation & Experience
+                    </h4>
+
+                    <p class="text-light">
+                        Cooking has always been my creative escape — a way to combine passion,
+                        precision, and discovery.
+                    </p>
+
+                    <p class="text-light">
+                        Through my experience in full-stack web development and UI design,
+                        I wanted to build something more than a recipe app — a culinary
+                        companion that inspires people to cook, learn, and share.
+                    </p>
+                </div>
+
+            </div>
+
+            <!-- Footer -->
+            <div class="text-center mt-5 pt-4 border-top border-light">
+                <p class="text-secondary mb-0">
+                    © 2025 <strong>NutriSmart</strong> — Crafted with ❤️ by Gnaneswari Tirumanyam
+                </p>
+            </div>
+
+        </div>
+    </section>
+    <script src="./js/api_config.js"></script>
+<script>
+        /* =========================
+        SCROLL ANIMATION BOTH SIDES
+        ========================= */
+        /* ===== Fade In Animation ===== */
+
+        document.addEventListener("DOMContentLoaded", () => {
+
+            const fadeEls =
+                document.querySelectorAll(".fade-in-on-scroll");
+
+            const observer =
+                new IntersectionObserver((entries) => {
+
+                    entries.forEach(entry => {
+
+                        if (entry.isIntersecting) {
+
+                            entry.target.classList.add("visible");
+
+                        } else {
+
+                            entry.target.classList.remove("visible");
+                        }
+                    });
+
+                }, {
+                    threshold: 0.1
+                });
+
+            fadeEls.forEach(el => observer.observe(el));
+        });
+
+        const sections = document.querySelectorAll(".intro-section");
+
+        function checkScroll() {
+
+            const triggerBottom = window.innerHeight * 0.80;
+            const triggerTop = window.innerHeight * 0.15;
+
+            sections.forEach(section => {
+
+                const rect = section.getBoundingClientRect();
+
+                if (rect.top < triggerBottom && rect.bottom > triggerTop) {
+
+                    section.classList.add("active");
+
+                } else {
+
+                    section.classList.remove("active");
+                }
+
+            });
+        }
+
+        window.addEventListener("scroll", checkScroll);
+
+        checkScroll();
+
+        /* =========================
+        BUTTON
+        ========================= */
+
+        function goToFeatures() {
+
+            window.location.href = "./intro.html";
+        }
+        /* =========================
+        BUTTON REDIRECTS
+        ========================= */
+
+        function goToDashboard() {
+
+            window.location.href = "./dashboard.html";
+        }
+
+        function goToScan() {
+
+            window.location.href = "./scan.html";
+        }
+
+        function goToBudget() {
+
+            window.location.href = "./budget.html";
+        }
+    </script>
+
+</body>
+
+</html>
+

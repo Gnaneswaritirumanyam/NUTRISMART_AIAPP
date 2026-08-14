@@ -1,0 +1,742 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Explore Cuisines</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <style>
+    /* ===== GLOBAL ===== */
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f8f9fa;
+      overflow-x: hidden;
+    }
+
+    /* ===== MAIN CONTENT ===== */
+    .main-content {
+      padding: 20px;
+      transition: margin-left 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* HEADER TEXT */
+    .header-text {
+      font-size: 28px;
+      font-weight: bold;
+      color: #ff5722;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    /* SEARCH BAR */
+    .search-bar {
+      width: 100%;
+      max-width: 500px;
+      margin: 0 auto 30px auto;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .search-bar input {
+      width: 70%;
+      padding: 10px 15px;
+      border-radius: 25px;
+      border: 1px solid #ddd;
+      font-size: 16px;
+      outline: none;
+    }
+
+    .search-bar button {
+      background-color: #ff5722;
+      color: white;
+      border: none;
+      border-radius: 25px;
+      padding: 10px 20px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    /* CUISINE GRID */
+    .cuisine-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 15px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .cuisine-card {
+      background-color: white;
+      border-radius: 10px;
+      overflow: hidden;
+      text-align: center;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .cuisine-card:hover {
+      transform: scale(1.05);
+    }
+
+    .cuisine-card img {
+      width: 100%;
+      height: 120px;
+      object-fit: cover;
+    }
+
+    .cuisine-card p {
+      margin: 8px 0;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    /* ===== BACKGROUND ===== */
+    #bg-image {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: -1;
+    }
+
+    /* ===== NAVBAR ===== */
+    .navbar {
+      position: relative;
+      top: 0;
+      width: 100%;
+      background: transparent !important;
+      padding: 15px 0;
+      z-index: 1050;
+    }
+
+    /* Navbar Links */
+    .navbar-brand {
+      color: white !important;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .navbar-nav .nav-link {
+      background: #ff5722;
+      color: white !important;
+
+      padding: 10px 5px;
+
+      border-radius: 25px;
+
+      font-size: 18px;
+      font-weight: 600;
+
+      transition: 0.3s ease;
+
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+
+      min-width: 110px;
+    }
+
+    .navbar-nav .nav-link:hover {
+      background: #e64a19;
+      color: white !important;
+      transform: translateY(-2px);
+    }
+
+    /* Logout button */
+    .logout-btn {
+      background: white;
+      color: #ff5722;
+      border: none;
+      padding: 10px 22px;
+      border-radius: 30px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .logout-btn:hover {
+      background: #ff5722;
+      color: white;
+      transform: translateY(-2px) scale(1.03);
+      box-shadow: 0 6px 18px rgba(255, 87, 34, 0.35);
+    }
+
+    /* ===== LOGO ===== */
+    .logo-img {
+      height: 100px;
+      width: auto;
+      margin-right: 6px;
+      position: relative;
+      top: 0px;
+      filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.4));
+    }
+
+    /* ===== MOBILE NAVBAR COMPLETE FIX ===== */
+    @media (max-width: 992px) {
+
+      /* Navbar */
+      .navbar {
+        position: relative;
+        width: 100%;
+        padding-top: 95px !important;
+        padding-bottom: 10px;
+      }
+
+      /* Container */
+      .navbar .container-fluid {
+        position: relative;
+
+        display: flex;
+        flex-direction: column;
+
+        align-items: center;
+        justify-content: flex-start;
+
+        width: 100%;
+        padding: 0 10px;
+      }
+
+      /* ===== CENTER LOGO ===== */
+      .navbar-brand {
+        position: absolute !important;
+
+        left: 50%;
+
+        transform: translateX(-50%) !important;
+
+        margin: 0 !important;
+        padding: 0 !important;
+
+        z-index: 9999;
+
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      /* Logo */
+      .logo-img {
+        height: 65px !important;
+        width: auto;
+        object-fit: contain;
+        display: block;
+      }
+
+      /* ===== SHOW NAVBAR ===== */
+      .navbar .collapse {
+        display: block !important;
+      }
+
+      /* ===== SCROLLABLE NAVBAR ===== */
+      .navbar-collapse {
+
+        width: 100%;
+
+        margin-top: 60px !important;
+
+        overflow-x: auto;
+        overflow-y: hidden;
+
+        white-space: nowrap;
+
+        scrollbar-width: none;
+
+        -webkit-overflow-scrolling: touch;
+
+        background: transparent !important;
+        padding: 0 !important;
+      }
+
+      .navbar-collapse::-webkit-scrollbar {
+        display: none;
+      }
+
+      /* ===== NAV ROW ===== */
+      .navbar-nav {
+        display: flex !important;
+
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+
+        align-items: center;
+        justify-content: flex-start;
+
+        gap: 12px;
+
+        width: max-content;
+
+        padding: 10px;
+      }
+
+      .navbar-nav .nav-item {
+        flex: 0 0 auto;
+      }
+
+      /* Nav buttons */
+      .navbar-nav .nav-link {
+
+        padding: 8px 16px !important;
+
+        font-size: 13px !important;
+
+        border-radius: 20px;
+
+        white-space: nowrap;
+
+        min-width: auto;
+      }
+
+      /* Logout button */
+      .logout-btn {
+        padding: 8px 16px !important;
+        font-size: 13px !important;
+        white-space: nowrap;
+      }
+    }
+
+    /* ===== RESPONSIVE GRID ===== */
+    @media (max-width: 768px) {
+
+      .cuisine-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+      }
+
+      .cuisine-card img {
+        height: 90px;
+      }
+
+      .cuisine-card p {
+        font-size: 12px;
+      }
+    }
+
+    /* ===== FLOATING AI ICON ===== */
+    #ai-icon {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: all 0.4s ease;
+      opacity: 0;
+      transform: scale(0.8);
+      z-index: 9999;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    }
+
+    #ai-icon.show {
+      opacity: 1;
+      transform: scale(1);
+      animation: pulse 3s infinite ease-in-out;
+    }
+
+    #ai-icon:hover {
+      transform: scale(1.15);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        transform: scale(1);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+      }
+
+      50% {
+        transform: scale(1.1);
+        box-shadow: 0 8px 18px rgba(0, 0, 0, 0.4);
+      }
+    }
+
+    @media (max-width: 600px) {
+      #ai-icon {
+        width: 60px;
+        height: 60px;
+        bottom: 20px;
+        right: 20px;
+      }
+    }
+
+
+
+    /* ===== Glowing White Headings ===== */
+    .glowing-text {
+      color: #fff;
+      text-shadow: 0 0 10px #ffffffb3, 0 0 20px #ffffff80;
+      animation: glow 2s infinite alternate;
+    }
+
+    @keyframes glow {
+      from {
+        text-shadow: 0 0 10px #ffffff80;
+      }
+
+      to {
+        text-shadow: 0 0 20px #fff, 0 0 30px #f8f9fa;
+      }
+    }
+
+    /* ===== Section Layout Adjustments ===== */
+    .about-content {
+      position: relative;
+      z-index: 2;
+      padding-left: 80px;
+      padding-right: 80px;
+    }
+
+    /* ===== Chef Side Images (moved to top corners) ===== */
+    .chef-image {
+      position: absolute;
+      top: 30;
+      /* fixed unit */
+      width: 200px;
+      height: auto;
+      opacity: 0.25;
+      z-index: 1;
+      filter: brightness(1.6);
+      animation: float 6s ease-in-out infinite;
+    }
+
+    .chef-image.left {
+      left: -20px;
+    }
+
+    .chef-image.right {
+      right: -30px;
+    }
+
+    /* ===== Smooth Floating Animation ===== */
+    @keyframes float {
+      0% {
+        transform: translateY(-20px);
+      }
+
+      50% {
+        transform: translateY(-10px);
+      }
+
+      100% {
+        transform: translateY(-20px);
+      }
+    }
+
+    /* --- Tablets (≤992px) --- */
+    @media (max-width: 992px) {
+      .about-content {
+        padding-left: 40px;
+        padding-right: 40px;
+      }
+
+      .chef-image {
+        width: 160px;
+        opacity: 0.3;
+      }
+    }
+
+    /* --- Mobile (≤768px) --- */
+    @media (max-width: 768px) {
+      .about-content {
+        padding: 0 20px;
+        text-align: center;
+      }
+
+      .about-content .row {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .chef-image {
+        width: 120px;
+        top: 10px;
+        z-index: 1;
+        opacity: 0.12;
+      }
+
+      .chef-image.left {
+        left: -60px;
+      }
+
+      .chef-image.right {
+        right: -60px;
+      }
+    }
+
+    /* --- Extra small screens (≤480px) --- */
+    @media (max-width: 480px) {
+      .about-content {
+        padding: 0 15px;
+      }
+
+      .chef-image {
+        display: none;
+        /* Hide on tiny screens */
+      }
+    }
+
+
+
+    /* ===== Fade-in Animation on Scroll ===== */
+    .fade-in-on-scroll {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: all 0.8s ease-in-out;
+    }
+
+    .fade-in-on-scroll.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Background Image -->
+  <img src="./images/cusi.png" alt="Background" id="bg-image">
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- 🔸 Modern Top Navbar -->
+  <nav class="navbar navbar-expand-lg py-2">
+    <div class="container-fluid px-4">
+
+      <!-- Logo -->
+      <a class="navbar-brand d-flex align-items-center" href="#">
+        <img src="./images/logo.png" alt="NutriSmart Logo" class="logo-img">
+      </a>
+
+
+      <!-- Navbar Links -->
+      <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+
+        <ul class="navbar-nav align-items-center gap-lg-3">
+
+          <li class="nav-item">
+            <a class="nav-link text-white fw-semibold" href="./dashboard.html">
+              <i class="fa-solid fa-house me-2"></i>
+              Home
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-white fw-semibold" href="./budget.html">
+              <i class="fa-solid fa-heart-pulse me-2"></i>
+              Nutriplans
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-white fw-semibold" href="./cuisine.html">
+              <i class="fa-solid fa-utensils me-2"></i>
+              Cuisine
+            </a>
+          </li>
+
+          <li class="nav-item">
+            <a class="nav-link text-white fw-semibold" href="./reviews.html">
+              <i class="fa-solid fa-star me-2"></i>
+              Reviews
+            </a>
+          </li>
+
+          <li class="nav-item">
+            <a class="nav-link text-white fw-semibold" href="./profile.html">
+              <i class="fa-solid fa-user me-2"></i>
+              Profile
+            </a>
+          </li>
+
+          <li class="nav-item">
+            <a class="nav-link text-white fw-semibold" href="#about-section">
+              <i class="fa-solid fa-circle-info me-2"></i>
+              About
+            </a>
+          </li>
+
+          <li class="nav-item">
+            <button class="logout-btn">
+              <i class="fa-solid fa-right-from-bracket me-2"></i>
+              Logout
+            </button>
+          </li>
+
+        </ul>
+
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="main-content" id="mainContent">
+    <h2 class="header-text">Explore Cuisines</h2>
+    <div class="search-bar">
+      <input type="text" id="cuisine-search" placeholder="Search cuisine...">
+      <button id="search-btn">Search</button>
+    </div>
+    <div class="cuisine-grid" id="cuisine-grid"></div>
+  </div>
+
+  <!-- ===== ABOUT SECTION ===== -->
+  <section id="about-section" class="container-fluid py-5 position-relative"
+    style="background-color:black; overflow:hidden; color:white;">
+
+    <!-- Decorative Chef Images -->
+    <img src="./images/boy.jpg" alt="Chef Left" class="chef-image left fade-in-on-scroll">
+    <img src="./images/girl.jpg" alt="Chef Right" class="chef-image right fade-in-on-scroll">
+
+    <!-- About Content -->
+    <div class="container position-relative fade-in-on-scroll about-content">
+      <div class="row g-4 align-items-start">
+
+        <!-- Owner Profile -->
+        <div class="col-lg-4 text-center">
+          <img src="./images/owner.jpg" alt="Owner" class="rounded-circle mb-3 shadow-lg"
+            style="width:150px; height:150px; object-fit:cover; border:3px solid #fff;">
+          <h4 class="fw-bold glowing-text">Gnaneswari Tirumanyam</h4>
+          <p class="mb-1"><i class="bi bi-envelope"></i> gnaneswari@example.com</p>
+          <p class="mb-1"><i class="bi bi-telephone"></i> +91 98765 43210</p>
+          <p class="mb-3"><i class="bi bi-geo-alt"></i> Tirupathi, India</p>
+
+          <div class="d-flex justify-content-center gap-4 fs-4">
+            <a class="text-white">🅾</a>
+            <a class="text-white"> ⓕ</a>
+            <a class="text-white"> ▶️</a>
+          </div>
+        </div>
+
+        <!-- About Website -->
+        <div class="col-lg-4">
+          <h4 class="fw-bold mb-3 text-center text-lg-start glowing-text">🍴 About This Website</h4>
+          <p class="text-light">
+            Welcome to <strong>NutriSmart</strong> — your all-in-one destination for discovering, sharing,
+            and creating recipes that connect people through taste. From local delicacies to global cuisines,
+            this platform celebrates the art of cooking in every form.
+          </p>
+          <p class="text-light">
+            Designed with simplicity, speed, and inspiration in mind — NutriSmart helps you search,
+            save, and explore recipes effortlessly. Every feature is built to make your cooking experience
+            smarter and more joyful.
+          </p>
+        </div>
+
+        <!-- Motivation & Experience -->
+        <div class="col-lg-4">
+          <h4 class="fw-bold mb-3 text-center text-lg-start glowing-text">💡 Motivation & Experience</h4>
+          <p class="text-light">
+            Cooking has always been my creative escape — a way to combine passion, precision, and discovery.
+            With each experiment, I learned how food tells stories and connects hearts.
+          </p>
+          <p class="text-light">
+            Through my experience in full-stack web development and UI design, I wanted to build
+            something more than a recipe app — a culinary companion that inspires people to cook,
+            learn, and share. NutriSmart is that dream realized.
+          </p>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="text-center mt-5 pt-4 border-top border-light">
+        <p class="text-secondary mb-0">
+          © 2025 <strong>NutriSmart</strong> — Crafted with ❤️ by Gnaneswari Tirumanyam
+        </p>
+      </div>
+    </div>
+  </section>
+  <script src="./js/api_config.js"></script>
+  <script>
+    // ===== CUISINES =====
+    const cuisines = ["African", "American", "Andhra", "Arab", "Asian", "Assamese", "Awadhi",
+      "Bengali Recipes", "Bihari", "British", "Cantonese", "Caribbean", "Chettinad", "Chinese",
+      "Coastal Karnataka", "Continental", "Coorg", "European", "French", "Fusion", "Goan Recipes",
+      "Greek", "Hyderabadi", "Indian", "Indo Chinese", "Indonesian",
+      "Italian Recipes", "Japanese", "Jharkhand", "Karnataka", "Kashmiri", "Kerala Recipes", "Kongunadu", "Konkan",
+      "Korean", "Lucknowi", "Maharashtrian Recipes", "Malabar", "Malaysian", "Malvani", "Mangalorean", "Mediterranean",
+      "Mexican", "Middle Eastern", "Mughlai", "Nagaland", "Nepalese", "North East India Recipes", "North Indian Recipes",
+      "North Karnataka", "Oriya Recipes", "Pakistani", "Parsi Recipes", "Punjabi", "Rajasthani", "Sichuan",
+      "Sindhi", "South Indian Recipes", "South Karnataka", "Sri Lankan", "Tamil Nadu", "Thai", "Udupi",
+      "Uttar Pradesh", "Vietnamese"];
+
+    const cuisineGrid = document.getElementById("cuisine-grid");
+    const searchInput = document.getElementById("cuisine-search");
+
+
+    function renderCuisines(filter = "") {
+      cuisineGrid.innerHTML = "";
+      cuisines
+        .filter(c => c.toLowerCase().includes(filter.trim().toLowerCase()))
+        .forEach(c => {
+          const card = document.createElement("div");
+          card.className = "cuisine-card";
+          const imgName = c.replace(/\s/g, '_').toLowerCase();  // Converts "North Indian Recipes" → "north_indian_recipes"
+          card.innerHTML = `<img src="./images/${imgName}.jpg" alt="${c}"><p>${c}</p>`;
+
+          // ✅ Make cuisine card clickable and redirect to item.html with query param
+          card.addEventListener("click", () => {
+            const encodedCuisine = encodeURIComponent(c);
+            window.location.href = `./items.html?cuisine=${encodedCuisine}`;
+          });
+
+          cuisineGrid.appendChild(card);
+        });
+    }
+
+    renderCuisines();
+    searchInput.addEventListener("input", () => renderCuisines(searchInput.value));
+
+
+    document.addEventListener("DOMContentLoaded", function () {
+      const fadeEls = document.querySelectorAll(".fade-in-on-scroll");
+
+      const appearOptions = {
+        threshold: 0.1, // start fading in when 10% visible
+      };
+
+      const appearOnScroll = new IntersectionObserver(function (entries) {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("visible");
+          } else {
+            entry.target.classList.remove("visible"); // Remove when scrolled out
+          }
+        });
+      }, appearOptions);
+
+      fadeEls.forEach(el => appearOnScroll.observe(el));
+    });
+  </script>
+
+  <!-- Floating AI Icon -->
+  <img id="ai-icon" src="./images/ai.png" alt="AI Assistant">
+  <script>
+    // ===== Floating AI Icon Effect (always visible) =====
+    const aiIcon = document.getElementById("ai-icon");
+
+    // Make sure it's visible once the page loads
+    window.addEventListener("load", () => {
+      aiIcon.classList.add("show");
+    });
+
+    // On click → go to /ai page
+    aiIcon.addEventListener("click", () => {
+      aiIcon.style.transform = "scale(1.2)";
+      aiIcon.style.transition = "transform 0.3s ease";
+      setTimeout(() => {
+        window.location.href = "./aichat.html";
+      }, 300); // smooth transition before redirect
+    });
+  </script>
+</body>
+
+</html>
+

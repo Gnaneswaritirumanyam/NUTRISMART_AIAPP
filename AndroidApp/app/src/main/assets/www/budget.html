@@ -1,0 +1,476 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>CookingHub Features</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:Arial, Helvetica, sans-serif;
+    min-height:100vh;
+    overflow-x:hidden;
+    position:relative;
+    background:#0f172a;
+}
+
+/* ================= BACKGROUND ================= */
+
+#bg-image{
+    position:fixed;
+    inset:0;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    z-index:-2;
+}
+
+body::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.60);
+    z-index:-1;
+}
+.nav-link-custom{
+    background:#ff5722;
+    color:white;
+    text-decoration:none;
+    padding:10px 20px;
+    border-radius:30px;
+    font-weight:600;
+    font-size:16px;
+    transition:0.3s;
+    display:flex;
+    align-items:center;
+}
+
+.nav-link-custom:hover{
+    background:#e64a19;
+    transform:translateY(-2px);
+    color:white;
+}
+
+.logo-img{
+    height:70px;
+    width:auto;
+}
+
+.logo-text{
+    color:#ff5722;
+    font-size:2rem;
+    font-weight:bold;
+}
+
+/* ================= MOBILE ================= */
+
+@media(max-width:768px){
+
+    .navbar{
+        padding:10px 15px;
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 10px;
+    }
+
+    .navbar .d-flex.gap-3 {
+        width: 100%;
+        overflow-x: auto;
+        white-space: nowrap;
+        padding-bottom: 5px;
+    }
+
+    .logo-img{
+        height:45px;
+    }
+
+    .logo-text{
+        font-size:1.3rem;
+    }
+
+    .nav-link-custom{
+        font-size:14px;
+        padding:8px 16px;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+}
+
+/* ================= PAGE TITLE ================= */
+
+.page-title-section{
+    text-align:center;
+    margin-top:20px;
+    margin-bottom:50px;
+}
+
+.page-title{
+    color:white;
+    font-size:55px;
+    font-weight:bold;
+    text-shadow:0 4px 10px rgba(0,0,0,0.4);
+}
+
+.page-subtitle{
+    color:#e5e5e5;
+    font-size:20px;
+    margin-top:10px;
+}
+
+/* ================= FEATURE GRID ================= */
+
+.features-container{
+    width:100%;
+    padding:20px 60px 60px;
+}
+
+.features-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+    gap:30px;
+}
+
+/* ================= FEATURE CARD ================= */
+
+.feature-card{
+    background:rgba(255,255,255,0.12);
+    backdrop-filter:blur(10px);
+    border:1px solid rgba(255,255,255,0.15);
+    border-radius:30px;
+    padding:35px 25px;
+    text-align:center;
+    transition:0.4s;
+    cursor:pointer;
+    box-shadow:0 10px 25px rgba(0,0,0,0.25);
+}
+
+.feature-card:hover{
+    transform:translateY(-10px) scale(1.03);
+    background:rgba(255,255,255,0.18);
+}
+
+.feature-icon{
+    width:90px;
+    height:90px;
+    background:#ff5722;
+    border-radius:50%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    margin:auto;
+    margin-bottom:25px;
+    box-shadow:0 8px 20px rgba(255,87,34,0.4);
+}
+
+.feature-icon i{
+    font-size:38px;
+    color:white;
+}
+
+.feature-title{
+    color:white;
+    font-size:28px;
+    font-weight:bold;
+    margin-bottom:15px;
+}
+
+.feature-desc{
+    color:#f1f1f1;
+    font-size:16px;
+    line-height:1.7;
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media(max-width:768px){
+
+    .page-title{
+        font-size:38px;
+    }
+
+    .features-container{
+        padding:20px;
+    }
+
+    .logo-img{
+        height:55px;
+    }
+
+    .logo-text{
+        font-size:1.5rem;
+    }
+
+    .nav-link-custom{
+        padding:8px 18px;
+        font-size:15px;
+    }
+
+}
+
+
+    @media(max-width:768px) {
+        .navbar {
+            flex-direction: column !important;
+            align-items: center !important;
+            padding: 15px 10px !important;
+        }
+        .navbar .d-flex.gap-3 {
+            width: 100% !important;
+            overflow-x: auto !important;
+            white-space: nowrap !important;
+            justify-content: flex-start !important;
+            padding-bottom: 5px !important;
+        }
+        .nav-link-custom {
+            white-space: nowrap !important;
+            flex-shrink: 0 !important;
+        }
+        .navbar > div:first-child {
+            display: flex !important;
+            justify-content: center !important;
+            width: 100% !important;
+        }
+    }
+    
+</style>
+</head>
+
+<body>
+
+<!-- ================= BACKGROUND ================= -->
+
+<img src="./images/futures.jpg"
+     id="bg-image"
+     alt="Background">
+
+<!-- ================= NAVBAR ================= -->
+
+<nav class="navbar d-flex justify-content-between align-items-center">
+
+    <!-- LOGO -->
+
+    <div class="d-flex align-items-center">
+
+        <img src="./images/logo.png"
+             class="logo-img"
+             alt="Logo">
+
+    </div>
+
+    <!-- RIGHT SIDE -->
+
+    <div class="d-flex gap-3">
+
+        <a href="./dashboard.html" class="nav-link-custom">
+            <i class="fa-solid fa-house me-2"></i>
+            Home
+        </a>
+          <a href="./budget.html" class="nav-link-custom">
+            <i class="fa-solid fa-heart-pulse me-2"></i>
+            Nutriplans
+        </a>
+         <a href="./cuisine.html" class="nav-link-custom">
+            <i class="fa-solid fa-utensils me-2"></i>
+            Cuisine
+        </a>
+         <a href="./reviews.html" class="nav-link-custom">
+            <i class="fa-solid fa-star me-2"></i>
+            Reviews
+        </a>
+            <a href="./profile.html" class="nav-link-custom">
+            <i class="fa-solid fa-user me-2""></i>
+            Profile
+        </a>
+
+        <a href="./login.html" class="nav-link-custom">
+            <i class="fa-solid fa-right-from-bracket me-2"></i>
+            Logout
+        </a>
+
+    </div>
+
+</nav>
+
+<!-- ================= TITLE ================= -->
+
+<div class="page-title-section">
+
+    <h1 class="page-title">
+        Smart Nutrition Features
+    </h1>
+
+    <p class="page-subtitle">
+        Explore AI-powered meal planning and health optimization tools
+    </p>
+
+</div>
+
+<!-- ================= FEATURES ================= -->
+
+<div class="features-container">
+
+    <div class="features-grid">
+
+        <!-- 1 -->
+
+<div class="feature-card"
+onclick="window.location.href='./health.html'">
+
+    <div class="feature-icon">
+        <i class="fa-solid fa-heart-pulse"></i>
+    </div>
+
+    <h2 class="feature-title">
+        Health-Based Diet
+    </h2>
+
+    <p class="feature-desc">
+        Get personalized healthy meal recommendations
+        based on your age, BMI, and medical conditions.
+    </p>
+
+</div>
+
+<!-- 2 -->
+
+<div class="feature-card"
+onclick="window.location.href='./budgetbased.html'">
+
+    <div class="feature-icon">
+        <i class="fa-solid fa-wallet"></i>
+    </div>
+
+    <h2 class="feature-title">
+        Budget-Based Meal Plan
+    </h2>
+
+    <p class="feature-desc">
+        Discover affordable healthy meals and optimize
+        your grocery expenses intelligently.
+    </p>
+
+</div>
+
+<!-- 3 -->
+
+<div class="feature-card"
+onclick="window.location.href='./loss.html'">
+
+    <div class="feature-icon">
+        <i class="fa-solid fa-weight-scale"></i>
+    </div>
+
+    <h2 class="feature-title">
+        Weight Loss Plan
+    </h2>
+
+    <p class="feature-desc">
+        Follow calorie deficit meal plans and smart
+        healthy food recommendations.
+    </p>
+
+</div>
+
+<!-- 4 -->
+
+<div class="feature-card"
+onclick="window.location.href='./gain.html'">
+
+    <div class="feature-icon">
+        <i class="fa-solid fa-dumbbell"></i>
+    </div>
+
+    <h2 class="feature-title">
+        Weight Gain Plan
+    </h2>
+
+    <p class="feature-desc">
+        Get high-calorie and protein-rich meal plans
+        for healthy weight gain.
+    </p>
+
+</div>
+
+<!-- 5 -->
+
+<div class="feature-card"
+onclick="window.location.href='./fitness.html'">
+
+    <div class="feature-icon">
+        <i class="fa-solid fa-fire"></i>
+    </div>
+
+    <h2 class="feature-title">
+        Gym/Fitness Diet
+    </h2>
+
+    <p class="feature-desc">
+        AI-generated pre-workout and post-workout
+        meals for muscle growth and fitness.
+    </p>
+
+</div>
+
+<!-- 6 -->
+
+<div class="feature-card"
+onclick="window.location.href='./meal.html'">
+
+    <div class="feature-icon">
+        <i class="fa-solid fa-calendar-days"></i>
+    </div>
+
+    <h2 class="feature-title">
+        Weekly Meal Planner
+    </h2>
+
+    <p class="feature-desc">
+        Organize breakfast, lunch, snacks, and dinner
+        plans for the entire week.
+    </p>
+
+</div>
+
+<!-- 7 -->
+
+<div class="feature-card"
+onclick="window.location.href='./nutri.html'">
+
+    <div class="feature-icon">
+        <i class="fa-solid fa-chart-line"></i>
+    </div>
+
+    <h2 class="feature-title">
+        Nutrition Analytics
+    </h2>
+
+    <p class="feature-desc">
+        Track calories, protein, water intake,
+        and nutrition progress visually.
+    </p>
+
+</div>
+
+
+    </div>
+
+</div>
+
+<script src="./js/api_config.js"></script>
+</body>
+</html>
+
